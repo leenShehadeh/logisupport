@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report
+	ID="Savills.Fonts4PDF"
+	>
+	<StyleSheet
+		ShowModes="rdBrowser"
+		StyleSheet="CSS.ChangeFontBrowser.css"
+		>
+		<Note
+			Note="Styles applying to just browser versions"
+		/>
+	</StyleSheet>
+	<IncludeHtml
+		Html="&lt;link rel=&quot;stylesheet&quot; href=&quot;_SupportFiles/CSS.ChangeFontPDF.css&quot; type=&quot;text/css&quot; media=&quot;print&quot; /&gt;"
+		>
+		<Note
+			Note="Styles applying to just printed versions"
+		/>
+	</IncludeHtml>
+	<Remark>
+		<IncludeHtml
+			Html="&lt;style&gt;
+
+&lt;/style&gt;"
+			>
+			<Note
+				Note="Styles applying to just printed versions"
+			/>
+		</IncludeHtml>
+	</Remark>
+	<Body>
+		<Label
+			Caption="新しい時代のこころを映すタイプフェイスデザイン"
+			Class="changefontusinginstalledfont"
+		/>
+		<Division
+			ShowModes="rdBrowser"
+			>
+			<Button
+				Caption="Export to PDF"
+				ID="btnExportToPDF"
+				>
+				<EventHandler
+					DhtmlEvent="onclick"
+					ID="evtClick"
+					>
+					<Action
+						Type="PDF"
+						>
+						<Target
+							ExportFilename="Test.pdf"
+							FrameID="NewWindow"
+							ID="tgtTest"
+							Type="PDF"
+						/>
+					</Action>
+				</EventHandler>
+			</Button>
+		</Division>
+	</Body>
+</Report>

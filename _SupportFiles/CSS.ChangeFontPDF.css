@@ -1,0 +1,21 @@
+.changefontusingfontface
+{
+   font-family: "source-han-sans-japanese" !important;  
+   font-size: 100% !important;
+   font-weight: normal;
+   
+}
+.changefontusinginstalledfont
+{
+   font-family: "source-han-sans-japanese" !important;  
+   font-size: 100% !important;
+   font-weight: bold;
+}
+
+@font-face{
+    font-family:source-han-sans-japanese;
+    src:url('Fonts.Japan.ttf');
+    font-style:normal;
+    font-weight:700;
+    font-display:swap
+}

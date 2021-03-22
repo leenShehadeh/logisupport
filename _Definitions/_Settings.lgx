@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Setting
+	ID="_settings"
+	>
+	<GlobalCSS
+		ID="themeSignal"
+		Theme="Signal"
+	/>
+	<Application
+		Caption="fontapp"
+	/>
+	<Path
+		AppPath="http://localhost:8080/fontss"
+	/>
+	<General
+		RepoFriendly="True"
+		ScriptingLanguage="JavaScript"
+		>
+		<WaitPage/>
+	</General>
+	<Connections/>
+	<TeamDevelopment/>
+	<Globalization
+		JavaFontFolder="C:\Users\lshehadeh\Desktop\apache-tomcat-9.0.44\webapps\fontss\_SupportFiles\Fonts"
+		RebuildJavaFontFolderPropertiesFile="True"
+		UserCulture="ja"
+	/>
+	<Remark>
+		<Globalization
+			JavaFontFolder="C:\Users\lshehadeh\Desktop\apache-tomcat-9.0.44\webapps\fontss\_SupportFiles\Fonts"
+		/>
+	</Remark>
+</Setting>

@@ -1,0 +1,12 @@
+<DefinitionModifier>
+	<SetAttributeWhenEmpty XPath="//ChartCanvas" NoDataCaption="表示するデータがありません" />
+	<SetAttribute XPath="//ResetZoomButton[@Caption='Reset Zoom']" Caption="ズームをリセット" />
+
+	<SetAttribute XPath="//Label[@Caption='My Chart To Export to PDF']" Caption="PDFにエクスポートする私のチャート" />
+	<SetAttribute XPath="//ChartCanvas[@ID='myChart']/ChartXAxis/AxisLabelStyle" Format="M月d日" />
+	<SetAttribute XPath="//Series[@LegendLabel='Live']" LegendLabel="住む" />
+	<SetAttribute XPath="//Series[@LegendLabel='On Demand']" LegendLabel="オンデマンド" />
+	
+	<SetAttribute XPath="//Label[@Caption='Export To PDF']" Caption="PDFにエクスポート" />
+
+</DefinitionModifier>
