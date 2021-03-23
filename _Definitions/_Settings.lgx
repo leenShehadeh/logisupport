@@ -8,6 +8,7 @@
 	/>
 	<Application
 		Caption="fontapp"
+		DefaultReport="newReport"
 	/>
 	<Path
 		AppPath="http://localhost:8080/fontss"
