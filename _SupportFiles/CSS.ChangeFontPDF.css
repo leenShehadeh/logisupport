@@ -1,21 +1,33 @@
-.changefontusingfontface
-{
-   font-family: "source-han-sans-japanese" !important;  
-   font-size: 100% !important;
-   font-weight: normal;
-   
+body{
+	width: 100%;
+	font-family:kaigen-sans-j, sans-serif !important;
+	background: white;
+	outline: none !important;
+	font-size: 9px !important;	/* 9px */
 }
-.changefontusinginstalledfont
-{
-   font-family: "source-han-sans-japanese" !important;  
-   font-size: 100% !important;
-   font-weight: bold;
-}
-
 @font-face{
-    font-family:source-han-sans-japanese;
-    src:url('Fonts.Japan.ttf');
+    font-family:kaigen-sans-j;
+    src:url('Fonts.KaigenSansJ-Medium.ttf') format("truetype");
     font-style:normal;
     font-weight:700;
     font-display:swap
 }
+@font-face{
+    font-family:kaigen-sans-j;
+    src:url('Fonts.KaigenSansJ-Bold.ttf') format("truetype");
+    font-style:italic;
+    font-weight:700;
+    font-display:swap
+}
+@font-face{
+    font-family:kaigen-sans-j;
+    src:url('Fonts.KaigenSansJ-Light.ttf') format("truetype");
+    font-style:italic;
+    font-weight:400;
+    font-display:swap}
+@font-face{
+    font-family:kaigen-sans-j;
+    src:url('Fonts.KaigenSansJ-Normal.ttf') format("truetype");
+    font-style:normal;
+    font-weight:400;
+    font-display:swap}

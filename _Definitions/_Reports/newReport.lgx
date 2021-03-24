@@ -6,6 +6,9 @@
 	<DefinitionModifierFile
 		DefinitionModifierFile="ja-JP.xml"
 	/>
+	<StyleSheet
+		StyleSheet="CSS.ChangeFontPDF.css"
+	/>
 	<Body>
 		<Label
 			Caption="My Chart To Export to PDF"
