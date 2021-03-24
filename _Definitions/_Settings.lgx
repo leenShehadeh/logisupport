@@ -31,7 +31,7 @@
 		/>
 	</Remark>
 	<Globalization
-		JavaFontFolder="/var/lib/tomcat7/webapps/SupportFiles/Fonts"
+		JavaFontFolder="/var/lib/tomcat7/webapps/logisupport/SupportFiles/Fonts"
 		RebuildJavaFontFolderPropertiesFile="True"
 		UserCulture="ja"
 	/>
