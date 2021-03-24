@@ -11,6 +11,7 @@
 			Caption="My Chart To Export to PDF"
 		/>
 		<ChartCanvas
+			BackgroundColor="#FFF"
 			ID="myChart"
 			>
 			<Series
