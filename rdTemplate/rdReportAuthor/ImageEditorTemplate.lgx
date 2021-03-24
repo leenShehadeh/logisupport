@@ -129,8 +129,8 @@
                       <Division ID="chooseImageWrapper_rdElementID" Class="imagePreviewItem" HtmlDiv="True">
                         <IncludeHtml Html="&lt;span id=&quot;rdRadioButtonGroupinpImageFileName_rdElementID&quot;&#xD;&#xA; name=&quot;imageSourceType_rdElementID&quot; rdradiobuttonvalue=&quot;OriginalSize&quot; type=&quot;rdRadioButtonGroup&quot;&gt;&lt;/span&gt;" />
                         <DataList ID="dlImages_rdElementID" Class="rdImageList">
-                          <DataLayer Type="Directory" DirectoryFolder="@Function.AppPhysicalPath~@Function.SeparatorChar~_SupportFiles" DirectoryType="FilesOnly" ID="ImageFolder_rdElementID">
-                            <RegExFilter DataColumn="Name" RegularExpression="^.*@Function.SeparatorChar~.(jpg|JPG|gif|GIF|png|PNG|bmp|BMP)$" IncludeCondition="True" />
+                          <DataLayer Type="Directory" DirectoryFolder="@Function.AppPhysicalPath~\_SupportFiles" DirectoryType="FilesOnly" ID="ImageFolder_rdElementID">
+                            <RegExFilter DataColumn="Name" RegularExpression="^.*\.(jpg|JPG|gif|GIF|png|PNG|bmp|BMP)$" IncludeCondition="True" />
                             <SequenceColumn ID="colRowNumber" />
                             <CalculatedColumn Formula="&quot;radio_selectedImage_@Data.colRowNumber~&quot;" ID="radioId" />
                             <CalculatedColumn Formula="&quot;[SelectedImage]&quot;" ID="colSelectedImage" />
@@ -140,9 +140,12 @@
                             <SqlConditionFilter SqlExpression="@Compare.sql_comp_directory_path~">
                               <SqlCompareFilter CompareType="Contains" CompareValue="" DataColumn="Id" DataType="Text" ID="sql_comp_directory_path"/>
                             </SqlConditionFilter>
-                            <RegExFilter DataColumn="Id" RegularExpression="^.*@Function.SeparatorChar~.(jpg|JPG|gif|GIF|png|PNG|bmp|BMP)$" IncludeCondition="True" />
+                            <RegExFilter DataColumn="Id" RegularExpression="^.*\.(jpg|JPG|gif|GIF|png|PNG|bmp|BMP)$" IncludeCondition="True" />
                             <SequenceColumn ID="colRowNumber" />
-                            <SqlCalculatedColumn ID="Name" SqlFormula="RIGHT(Id, CHARINDEX('\', REVERSE(Id)) -1)" />
+                            	<SqlCalculatedColumn
+					                    ID="Name"
+					                    SqlFormula="RIGHT(Id, CHARINDEX(&apos;\&apos;, REVERSE(Id)) -1)"
+				                    />
                             <CalculatedColumn Formula="&quot;radio_selectedImage_@Data.colRowNumber~&quot;" ID="radioId" />
                             <CalculatedColumn Formula="&quot;[SelectedImage]&quot;" ID="colSelectedImage" />
                             <CalculatedColumn ID="colChecked" Formula="IIF(&quot;@Data.Name~&quot; = &quot;@Data.colSelectedImage~&quot;, &quot;checked='checked' &quot;, &quot;&quot;)" />

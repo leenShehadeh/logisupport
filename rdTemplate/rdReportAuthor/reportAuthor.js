@@ -25,12 +25,6 @@ YUI.add('reportAuthor', function (Y) {
             rdSetUndoRedoVisibility();
         },
 
-        reportAuthorReinitializeHandler: function () {
-            this.processPopups();
-            this.checkForLoadedPopups();
-            rdSetUndoRedoVisibility();
-        },
-
         processPopups: function () {
             /*--------------- visualizations -----------------*/
             if (this._handlers.popupClose) {
@@ -56,9 +50,8 @@ YUI.add('reportAuthor', function (Y) {
                     this.addVisualizationsPopupClose();
                 }, this);
             }
-            if (LogiXML.Ajax.AjaxTarget) {
-                this._handlers.popupCloseAjax && this._handlers.popupCloseAjax.detach(); //re-attach reinitialize because subscription will drop after IFrame loading (while editing)
-                this._handlers.popupCloseAjax = LogiXML.Ajax.AjaxTarget().on('reinitialize', this.reportAuthorReinitializeHandler, this);
+            if (LogiXML.Ajax.AjaxTarget && !this._handlers.popupCloseAjax) {
+                this._handlers.popupCloseAjax = LogiXML.Ajax.AjaxTarget().on('reinitialize', function () { this.processPopups(); this.checkForLoadedPopups(); rdSetUndoRedoVisibility(); }, this);
             }
             
         },

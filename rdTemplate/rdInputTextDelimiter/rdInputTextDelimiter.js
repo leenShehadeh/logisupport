@@ -1234,7 +1234,7 @@ LogiXML.rdInputTextDelimiter = LogiXML.rdInputTextDelimiter || {
                         entry = activeItem._node.innerText;
                 }
             }
-
+            
             if (entry)
                 addPill(this, entry);
 
@@ -1299,9 +1299,9 @@ LogiXML.rdInputTextDelimiter = LogiXML.rdInputTextDelimiter || {
     showAutoCompleteList: function (container) {
         if (!container || !Y || !Y.LogiXML || !Y.LogiXML.rdAutoComplete)
             return;
-
+        
         var input = document.getElementById(container.getAttribute("data-text-input-id"));
-
+        
         if (input.className.split(" ").indexOf(LogiXML.rdInputTextDelimiter.AUTO_COMPLETE_CLASS_NAME) < 0)
             return;
 
@@ -1391,15 +1391,10 @@ LogiXML.rdInputTextDelimiter = LogiXML.rdInputTextDelimiter || {
         for (var i = 0; i < values.length; i++) {
             text = values[i];
 
-            // don't include qualifier if it is not needed
-            if (delimiter && qualifier
-                && (text.indexOf(delimiter) >= 0
-                    || text.indexOf(qualifier) >= 0
-                    || (escape && text.indexOf(escape) >= 0))) {
-
+            if (qualifier) {
                 if (escape)
                     text = text.replace(regEsc, escape + escape);
-
+                
                 if (escape != qualifier)
                     text = text.replace(regQual, escape + qualifier);
 
@@ -1460,17 +1455,12 @@ LogiXML.rdInputTextDelimiter = LogiXML.rdInputTextDelimiter || {
 
         var pill = sel.anchorNode;
         var found = false;
-
         while (pill) {
-            try {
-                if (pill.className && pill.className.indexOf(LogiXML.rdInputTextDelimiter.PILL_CLASS_NAME) >= 0) {
-                    found = true;
-                    break;
-                }
+            if (pill.className && pill.className.indexOf(LogiXML.rdInputTextDelimiter.PILL_CLASS_NAME) >= 0) {
+                found = true;
+                break;
             }
-            catch (e) {
-                //Catch Error
-            }
+
             pill = pill.parentNode;
         }
 

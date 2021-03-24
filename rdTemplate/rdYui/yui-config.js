@@ -219,12 +219,7 @@ var YUI_config = {
                     path: 'chartfx-selection.js',
                     requires: ['dom-base', 'node-base', 'base', 'event', 'event-tap', 'dom-style-ie', 'selector-css2', 'image-utils', 'color-utils', 'canvas-utils', 'attribute-helpers', 'node-custom-destroy', 'chartfx-canvas-screen', 'chartfx-highlight']
                 },
-								//REPDEV-24519 Develop a new breadcrumb menu for SSRM Dashboard Drill To
-                'chartDrillToBreadcrumb': {
-                    path: 'chart-drillto-breadcrumb.js',
-                    requires: ['base', 'node', 'event']
-                },
-								
+
                 'color-utils': {
                     path: 'color-utils.js'
                 },

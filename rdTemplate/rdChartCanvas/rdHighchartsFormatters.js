@@ -241,26 +241,13 @@ LogiXML.HighchartsFormatters = {
         if (quicktip.descr) {
             html += '<p>' + quicktip.descr + '</p>';
         }
-        //REPDEV-23818
-        var defaultFormat = 'Percent';
-        var percentageToken = '@Chart.rdStackedChartPercentage~';
-        if (this.point.percentage != undefined && html.indexOf(percentageToken) > -1) {
-            var formatedValue = LogiXML.Formatter.format(this.point.percentage / 100, defaultFormat);
-            html = html.replace(new RegExp(percentageToken, 'g'), formatedValue);
-        }
 
         if (quicktip.rows && quicktip.rows.length > 0) {
             html += '<table class="rdquicktip-table">';
             i = 0;
             length = quicktip.rows.length;
             for (; i < length; i++) {
-                var fragment = '<tr><td>' + quicktip.rows[i].caption + '</td><td>' + LogiXML.decodeHtml(quicktip.rows[i].value || "", quicktip.rows[i].format == 'HTML') + '</td></tr>';
-                //REPDEV-23818
-                if (this.point.percentage != undefined && fragment.indexOf(percentageToken) > -1) {
-                    var formatedValue = LogiXML.Formatter.format(this.point.percentage / 100, quicktip.rows[i].format || defaultFormat);
-                    fragment = fragment.replace(new RegExp(percentageToken, 'g'), formatedValue);
-                }
-                html += fragment;
+                 html += '<tr><td>' + quicktip.rows[i].caption + '</td><td>' + LogiXML.decodeHtml(quicktip.rows[i].value || "", quicktip.rows[i].format == 'HTML') + '</td></tr>';
             }
             html += '</table>';
         }

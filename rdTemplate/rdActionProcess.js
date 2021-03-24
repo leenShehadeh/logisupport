@@ -108,9 +108,7 @@ function RunProcess(sActionsXml, bValidate, sConfirm, sTarget, waitCfg) {
 			
 	//document.rdForm.action="rdProcess.aspx?&rdRnd=" + Math.floor(Math.random() * 100000)
     var showPanelTimeout = 0;
-    var selfTarget = LogiXML.isSelfTarget(sTarget);
-
-    if (selfTarget && waitCfg && waitCfg.async) {
+    if (waitCfg && waitCfg.async) {
         var headers = [];
 
         headers.push({
@@ -129,31 +127,43 @@ function RunProcess(sActionsXml, bValidate, sConfirm, sTarget, waitCfg) {
             document.rdForm.action = "rdProcessAsync.aspx?";
         }
 
-        waitCfg.target = document.rdForm.target;
-
         var onSuccess, onFail;
 
         if (waitCfg.onSuccess) {
             onSuccess = function (xhr) {
+                if (showPanelTimeout)
+                    clearTimeout(showPanelTimeout);
+
                 waitCfg.onSuccess.apply(this, arguments)
-                rdProcessResponse(xhr, waitCfg, showPanelTimeout);
+
+                rdProcessResponse(xhr, waitCfg);
             };
         }
         else {
             onSuccess = function (xhr) {
-                rdProcessResponse(xhr, waitCfg, showPanelTimeout);
+                if (showPanelTimeout)
+                    clearTimeout(showPanelTimeout);
+
+                rdProcessResponse(xhr, waitCfg);
             };
         }
 
         if (waitCfg.onFail) {
             onFail = function (xhr) {
+                if (showPanelTimeout)
+                    clearTimeout(showPanelTimeout);
+
                 waitCfg.onFail.apply(this, arguments)
-                rdProcessResponse(xhr, waitCfg, showPanelTimeout);
+
+                rdProcessResponse(xhr, waitCfg);
             };
         }
         else {
             onFail = function (xhr) {
-                rdProcessResponse(xhr, waitCfg, showPanelTimeout);
+                if (showPanelTimeout)
+                    clearTimeout(showPanelTimeout);
+
+                rdProcessResponse(xhr, waitCfg);
             };
         }
 
@@ -169,7 +179,7 @@ function RunProcess(sActionsXml, bValidate, sConfirm, sTarget, waitCfg) {
 	document.rdForm.action= ""; //#4434
 	
 	//Show wait panel
-    if (selfTarget && waitCfg != null && waitCfg.waitMessage !== false && LogiXML.WaitPanel.pageWaitPanel) {
+    if (waitCfg != null && waitCfg.waitMessage !== false && LogiXML.WaitPanel.pageWaitPanel) {
 		LogiXML.WaitPanel.pageWaitPanel.readyWait();
         showPanelTimeout = setTimeout(function () {
             LogiXML.WaitPanel.pageWaitPanel.showWaitPanel(waitCfg);
@@ -181,104 +191,33 @@ function RunProcess(sActionsXml, bValidate, sConfirm, sTarget, waitCfg) {
     }
 }
 
-function rdProcessResponse(xhr, waitCfg, showPanelTimeout) {
-    if (!xhr || !xhr.target) {
-        if (showPanelTimeout)
-            clearTimeout(showPanelTimeout);
-
+function rdProcessResponse(xhr, waitCfg) {
+    if (!xhr || !xhr.target)
         return;
-    }
 
     if (xhr.target.responseXML && xhr.target.responseXML.documentElement) {
         var redirect = xhr.target.responseXML.documentElement.getAttribute("RedirectLocation");
-        if (!redirect) {
-            if (showPanelTimeout)
-                clearTimeout(showPanelTimeout);
-
+        if (!redirect)
             return;
-        }
-
-        var sTarget = waitCfg ? waitCfg.target : null;
-
-        if (showPanelTimeout && !LogiXML.isSelfTarget(sTarget)) {
-            clearTimeout(showPanelTimeout);
-            showPanelTimeout = null;
-
-            if (LogiXML.WaitPanel.pageWaitPanel) {
-                LogiXML.WaitPanel.pageWaitPanel.cancelWait();
-                LogiXML.WaitPanel.pageWaitPanel.hideWaitPanel();
-            }
-        }
 
         var newWaitCfg = xhr.target.responseXML.documentElement.getAttribute("WaitConfig");
         if (newWaitCfg) {
             newWaitCfg = eval("(" + newWaitCfg + ")");
             if (newWaitCfg) {
                 // don't replace an existing wait page with the global wait page
-                if (!waitCfg || !newWaitCfg.isGlobal) {
-                    if (showPanelTimeout) {
-                        clearTimeout(showPanelTimeout);
-                        showPanelTimeout = null;
-                    }
-
+                if (!waitCfg || !newWaitCfg.isGlobal)
                     waitCfg = newWaitCfg;
-                }
             }
         }
 
-        var form = document.createElement("FORM");
-        document.body.appendChild(form);
-
-        form.method = xhr.target.responseXML.documentElement.getAttribute("RedirectMethod");
-
-        var i = redirect.indexOf("?");
-
-        if (i > 0) {
-            var parms = LogiXML.getUrlParameters(redirect);
-            redirect = redirect.substr(0, i);
-
-            // REPDEV-25072 rdReport, rdScrollX, and rdScrollY are needed in the target url as request parameters in the query string.
-            // Javascript running on the target page expects these values to be retrievable from the url.
-            // If other params are needed specifically in the url, add them to this array.
-            // Params not contained in this array will be sent as form data.
-            var parsedLaterFromUrl = ["rdReport", "rdScrollX", "rdScrollY"];
-
-            for (i = 0; i < parms.length; i++) {
-                var parm = parms[i];
-                if (parsedLaterFromUrl.indexOf(parm.name) >= 0) {
-                    if (redirect.indexOf("?") >= 0)
-                        redirect += "&";
-                    else
-                        redirect += "?";
-
-                    redirect += parm.name + "=" + encodeURIComponent(parm.value);
-                }
-                else {
-                    var inp = document.createElement("INPUT");
-                    inp.type = "hidden";
-                    inp.name = parm.name;
-                    inp.value = parm.value;
-                    form.appendChild(inp);
-                }
-            }
-        }
-
-        SubmitForm(redirect, sTarget, null, null, null, waitCfg, form);
-
-        form.parentNode.removeChild(form);
-
-        return;
+        return SubmitForm(redirect, null, null, null, null, waitCfg);
     }
 
     if (xhr.target.responseText && xhr.target.responseText.indexOf("<!DOCTYPE html") == 0) {
         var htmlObj = rdParseHtml(xhr.target.responseText);
 
-        if (!htmlObj) {
-            if (showPanelTimeout)
-                clearTimeout(showPanelTimeout);
-
+        if (!htmlObj)
             return console.error(xhr.target.responseText);
-        }
 
         if (htmlObj.debugUrl && htmlObj.debugUrl != document.body.getAttribute("rdDebugUrl")) {
             window.location.href = htmlObj.debugUrl;
@@ -309,9 +248,6 @@ function rdProcessResponse(xhr, waitCfg, showPanelTimeout) {
 
         rdLoadHtml(htmlObj);
     }
-
-    if (showPanelTimeout)
-        clearTimeout(showPanelTimeout);
 }
 
 function rdParseHtml(html) {

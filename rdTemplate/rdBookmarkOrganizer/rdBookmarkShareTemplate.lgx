@@ -63,12 +63,10 @@
 											<DataTable ID="dtUserList" Width="100" WidthScale="%" AjaxPaging="True" AltRowClass="noAlternate">
 												<Note Note="This is the data layer that is replaced with the child of the action.showbookmarksharing (if there is one)" />
 												<DataLayer Type="Static" ID="DummyDataLayer">
-													<CalculatedColumn Formula="IIF(&quot;@Data.rdSharingCollectionDisplayColumn~&quot; == &quot;&quot;,&quot;@Data.rdSharingCollectionColumn~&quot;,&quot;@Data.rdSharingCollectionDisplayColumn~&quot;)" ID="calDisplayName" IncludeCondition="(&quot;@Request.InpUser~&quot;.length &gt; 0) &amp;&amp; (&quot;@Request.rdSharingCollectionDisplayColumn~&quot; &lt;&gt; &quot;&quot;)"/>
 													<Remark>
 														<ConditionFilter Condition="(&quot;@Request.InpUser~&quot;.length &lt;&gt; 0) &amp;&amp;  (&quot;@Data.rdSharingCollectionColumn~&quot;.toLowerCase().indexOf(&quot;@Request.InpUser~&quot;) &lt;&gt; -1)" />
 													</Remark>
-													<CompareFilter DataColumn="rdSharingCollectionColumn" ID="compareIsFind" CompareType="Contains" DataType="Text" CaseSensitive="False" CompareValue="@Request.InpUser~" IncludeCondition="(&quot;@Request.InpUser~&quot;.length &gt; 0) &amp;&amp; (&quot;@Request.rdSharingCollectionDisplayColumn~&quot; == &quot;&quot;)" />
-													<CompareFilter DataColumn="calDisplayName" ID="compareIsFindByDisp" CompareType="Contains" DataType="Text" CaseSensitive="False" CompareValue="@Request.InpUser~" IncludeCondition="(&quot;@Request.InpUser~&quot;.length &gt; 0) &amp;&amp; (&quot;@Request.rdSharingCollectionDisplayColumn~&quot; &lt;&gt; &quot;&quot;)" />
+													<CompareFilter DataColumn="rdSharingCollectionColumn" ID="compareIsFind" CompareType="Contains" DataType="Text" CaseSensitive="False" CompareValue="@Request.InpUser~" IncludeCondition="&quot;@Request.InpUser~&quot;.length &gt; 0" />
 													<CompareFilter DataColumn="rdSharingCollectionColumn" ID="compareExcludeOwner" CaseSensitive="False" CompareType="&lt;&gt;" CompareValue="@Function.UserName~" DataType="Text" />
 													<CompareFilter DataColumn="rdGroupIdentifierColumn" ID="compareSharePeople" CompareType="LengthEquals" DataType="Text" CompareValue="0" IncludeCondition="&quot;@Request.lstShareType~&quot; == &quot;People&quot;" />
 													<CompareFilter DataColumn="rdGroupIdentifierColumn" ID="compareShareGroups" CompareType="LengthNotEqualTo" DataType="Text" CompareValue="0" IncludeCondition="&quot;@Request.lstShareType~&quot; == &quot;Groups&quot;" />
@@ -78,7 +76,7 @@
 													<Label Caption=" &amp;nbsp;" ID="lblAddUser" Format="HTML" Class="" Tooltip="Share">
 														<ConditionalClass Class="iconAddUser" ID="iconAddUser" Condition="'@Data.rdGroupIdentifierColumn~' == ''" />
 														<ConditionalClass Class="iconAddGroup" ID="iconAddGroup" Condition="'@Data.rdGroupIdentifierColumn~' &lt;&gt; ''" />
-                            <Action Type="ShareBookmark" BookmarkCollection="@Request.rdBookmarkCollection~" FolderID="@Request.rdFolderID~" BookmarkID="@Request.rdBookmarkID~" SharedWith="@Data.rdSharingCollectionColumn~" SharedWithDisp="@Data.rdSharingCollectionDisplayColumn~" RefreshDTID="dtBookmarkOwner" ID="actShare" >
+                            <Action Type="ShareBookmark" BookmarkCollection="@Request.rdBookmarkCollection~" FolderID="@Request.rdFolderID~" BookmarkID="@Request.rdBookmarkID~" SharedWith="@Data.rdSharingCollectionColumn~" RefreshDTID="dtBookmarkOwner" ID="actShare" >
                               <WaitPage />
                             </Action>
 													</Label>
@@ -106,11 +104,8 @@
 						<Column>
 							<DataTable ID="dtBookmarkSharedWith" Width="100" WidthScale="%" AjaxPaging="True" AltRowClass="noAlternate">
 								<DataLayer Type="Bookmarks" BookmarkCollection="@Request.rdBookmarkCollection~" ListSharedWithCollections="True" FilterByID="True" ID="dlAllSharedWiths" />
-								<DataTableColumn Width="45" WidthScale="%">
+								<DataTableColumn Width="85" WidthScale="%">
 									<Label Caption="@Data.BookmarkUserName~" ID="lblSharedUserName" />
-								</DataTableColumn>
-								<DataTableColumn Width="40" WidthScale="%" Condition="&quot;@Request.rdSharingCollectionDisplayColumn~&quot; &lt;&gt; &quot;&quot;">
-									<Label Caption="@Data.BookmarkUserDispName~" ID="lblSharedDispNames"/>
 								</DataTableColumn>
 								<DataTableColumn Width="15" WidthScale="%">
 									<Division ID="divCondition">

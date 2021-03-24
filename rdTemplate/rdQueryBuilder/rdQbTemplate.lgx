@@ -98,7 +98,6 @@
 				<ElementTemplate ID="templateQbColumns">
 					<LineBreak/>
 					<InputCheckboxList ID="iclQbColumns" CheckboxListDropdown="False" MultiSelect="True" OptionCaptionColumn="ColumnFriendlyName" OptionValueColumn="ColumnName" ColumnCount="4" CheckAllCaption="(All)">
-            <InputTextDelimiter Delimiter="," EscapeCharacter="\" Qualifier="&quot;" />
 						<DataLayer Type="Static" ID="dlQbColumns" />
 					</InputCheckboxList>
 				</ElementTemplate>

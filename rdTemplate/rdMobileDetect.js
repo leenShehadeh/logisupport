@@ -1,7 +1,6 @@
 ﻿var sReqCacheHtml = document.getElementById("rdButtonRedirect").parentNode.parentNode.innerHTML;
 sReqCacheHtml = sReqCacheHtml.substring(sReqCacheHtml.indexOf("?") + 1);
 sReqCacheHtml = sReqCacheHtml.substring(0, sReqCacheHtml.indexOf("'")).replace(/&amp;/g, '&');
-sReqCacheHtml = eval('"' + sReqCacheHtml + '"');
 
 var sHref = window.location.href;
 

@@ -44,7 +44,7 @@ Get the average [UnitPrice] considering only one of each unique value." Format="
 					<Label ID="lblFunctions" Caption="Aggregate Functions perform a calculation on a set of values and return a single value." Format="Preserve Line Feeds"/>
 					<LineBreak LineCount="2"/>
 					<DataTable ID="dtFunctions" CellSpacing="0" TableBorder="1">
-            <DataLayer Type="XMLFile" ID="dlFunctions" XMLFile="@Function.AppPhysicalPath~/rdTemplate/rdAnalysisGrid/Help/MySql/rdAg10MySqlHelpCustAggData.lgx" />
+            <DataLayer Type="XMLFile" ID="dlFunctions" XMLFile="@Function.AppPhysicalPath~/rdTemplate/rdAnalysisGrid/Help/MySQL/rdAg10MySQLHelpCustAggData.lgx" />
             <StaticDataRow Name="Abs" Description="Returns the absolute value of a number." Syntax="Abs(number)" Notes="The absolute value of -5 is 5."/>
 						<DataTableColumn ID="colName" Header="Function Name" Class="cell" Width="100">
 							<Label ID="lblName" Caption="@Data.Name~"/>
@@ -78,7 +78,7 @@ Get the average [UnitPrice] considering only one of each unique value." Format="
           <Label ID="lblCalcFunctions" Caption="Functions accept some number of values and return a single value." Format="Preserve Line Feeds"/>
           <LineBreak LineCount="2"/>
           <DataTable ID="dtCalcFunctions" CellSpacing="0" TableBorder="1">
-            <DataLayer Type="XMLFile" ID="dlCalcFunctions" XMLFile="@Function.AppPhysicalPath~/rdTemplate/rdAnalysisGrid/Help/MySql/rdAg10MySqlHelpCalcData.lgx" />
+            <DataLayer Type="XMLFile" ID="dlCalcFunctions" XMLFile="@Function.AppPhysicalPath~/rdTemplate/rdAnalysisGrid/Help/MySQL/rdAg10MySQLHelpCalcData.lgx" />
             <StaticDataRow Name="Abs" Description="Returns the absolute value of a number." Syntax="Abs(number)" Notes="The absolute value of -5 is 5."/>
             <DataTableColumn ID="colCalcName" Header="Function Name" Class="cell" Width="100">
               <Label ID="lblCalcName" Caption="@Data.Name~"/>
@@ -112,7 +112,7 @@ Get the average [UnitPrice] considering only one of each unique value." Format="
 					<Label ID="lblIntro" Caption="Operators do arithmetic and logical comparisons."/>
 					<LineBreak LineCount="2"/>
 					<DataTable ID="dtOperators" CellSpacing="0" TableBorder="1" IdeDisplayStatus="Collapsed">
-            <DataLayer Type="XMLFile" ID="dlFunctions" XMLFile="@Function.AppPhysicalPath~/rdTemplate/rdAnalysisGrid/Help/MySql/rdAg10MySqlHelpCalcDataOp.lgx" />
+            <DataLayer Type="XMLFile" ID="dlFunctions" XMLFile="@Function.AppPhysicalPath~/rdTemplate/rdAnalysisGrid/Help/MySQL/rdAg10MySQLHelpCalcDataOp.lgx" />
             <DataTableColumn ID="colOperator" Header="Operator" Class="cell">
 							<Label ID="lblOperator" Caption="@Data.Operator~"/>
 							<Label ID="lblSpace" Caption="&amp;nbsp;" Format="HTML"/>

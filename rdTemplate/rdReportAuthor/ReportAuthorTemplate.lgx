@@ -77,7 +77,7 @@
         </Row>
         <Row ID="rowReportAuthorMainContainer">
           <Column ID="colReportAuthorToolbox" Width="190" WidthScale="px" Class="ThemeAlignTop">
-		    <Division Class="rd-toolbox-container ThemeAlignCenter ThemeAlignTop" Style="position: fixed; margin-top: 10px; z-index: 10;">
+		    <Division Class="rd-toolbox-container ThemeAlignCenter ThemeAlignTop" Style="position: fixed; margin-top: 10px;">
 					<DraggableDivision ID="dragAddRow" Class="rdReportAuthorToolboxItem" DropStubID="ReportAuthorDropStub" DragGroup="PDFHeaderFooter,WorkArea">
 					  <Division Class="rd-toolbox-element" HtmlDiv="True" IdeDisplayStatus="Collapsed">
 						<Division Class="rd-toolbox-element-image rd-image-rowxsmall">
@@ -253,32 +253,6 @@
 						</Division>
 					  </ProxyDivision>
 					  <LinkedParams action="setEditActionCause('False');rdAjaxRequestWithFormVars('rdAjaxCommand=RefreshElement&amp;rdRefreshElementID=rdReportAuthorID,rdReturnElementID&amp;rdReportAuthorAction=add&amp;rdElementType=PdfButton&amp;rdReportAuthorElementID=rdElementID&amp;rdReportAuthorParentID=rdNewParentID&amp;rdReportAuthorSiblingElementID=rdSiblingID&amp;rdReportAuthorRefreshElementID=rdReturnElementID&amp;rdReport=rdCurrentReport','false','',null,null,null,['','',''])" />
-					</DraggableDivision>
-					<DraggableDivision ID="dragAddExcelButton" Class="rdReportAuthorToolboxItem" DropStubID="ReportAuthorDropStub" DragGroup="WorkArea">
-					  <Division Class="rd-toolbox-element" HtmlDiv="True" IdeDisplayStatus="Collapsed">
-						<Division Class="rd-toolbox-element-image rd-image-rowxsmall-Newtext">
-						  <Image Caption="../rdTemplate/rdColumnDragHandle.png" />
-						</Division>
-						<Division Class="rd-toolbox-element-image rd-image-element" IdeDisplayStatus="Collapsed">
-						  <Image ID="imgExcelButton" Caption="../rdTemplate/rdReportAuthor/addExcelButton.png" />
-						</Division>
-						<Division Class="rd-toolbox-element-text rd-text-element" IdeDisplayStatus="Collapsed">
-              <Label ID="lblNewExcel" Caption="New Excel Link" />
-						</Division>
-						<Division Class="clear-both" HtmlDiv="True" />
-					  </Division>
-					  <ProxyDivision MoveOnEnd="False" ID="proxyDragAddExcelButton" HideOnEnd="" Class="rdReportAuthorToolboxItemDraggableProxy rd-toolbox-element-proxy">
-						<Division Class="rd-toolbox-element" HtmlDiv="True" IdeDisplayStatus="Collapsed">
-						  <Division Class="rd-toolbox-element-image rd-image-element" IdeDisplayStatus="Collapsed">
-							<Image ID="imgExcelButton" Caption="../rdTemplate/rdReportAuthor/addExcelButton.png" />
-						  </Division>
-						  <Division Class="rd-toolbox-element-text rd-text-element" IdeDisplayStatus="Collapsed">
-                <Label ID="lblNewExcelProxy" Caption="New Excel Link" />
-						  </Division>
-						  <Division Class="clear-both" HtmlDiv="True" />
-						</Division>
-					  </ProxyDivision>
-					  <LinkedParams action="setEditActionCause('False');rdAjaxRequestWithFormVars('rdAjaxCommand=RefreshElement&amp;rdRefreshElementID=rdReportAuthorID,rdReturnElementID&amp;rdReportAuthorAction=add&amp;rdElementType=ExcelButton&amp;rdReportAuthorElementID=rdElementID&amp;rdReportAuthorParentID=rdNewParentID&amp;rdReportAuthorSiblingElementID=rdSiblingID&amp;rdReportAuthorRefreshElementID=rdReturnElementID&amp;rdReport=rdCurrentReport','false','',null,null,null,['','',''])" />
 					</DraggableDivision>
 			 </Division>
             <Division ID="rdToolboxContainerDummyDiv" Class="rd-toolbox-container ThemeAlignCenter ThemeAlignTop" Style="visibility: hidden; margin-left: 5px; margin-top: 5px;">

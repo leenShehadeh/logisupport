@@ -174,16 +174,14 @@ YUI.add('waitpanel', function (Y) {
 				+ '</td></table></span></div>');
 		},
 	
-		showWaitPanel : function(waitCfg, fileGuid) {
-			if (this.isWaitCanceled()) {
-				return;
+		showWaitPanel : function(waitCfg) {
+			if (this.isWaitCanceled()) {				
+				return;			
 			}
-			else if (LogiXML.isDownloadComplete(false)) {
-				LogiXML.unwatchDownload();
-				return; //25599
+			else if (Y.Cookie && Y.Cookie.exists('rdFileDownloadComplete')) {
+			    Y.Cookie.remove('rdFileDownloadComplete', { path: '/' });
+			    return; //25599
 			}
-
-			LogiXML.watchDownload(fileGuid);
 			
             var waitMessage, waitClass, waitCaptionClass;
             if (waitCfg.waitMessage)
@@ -281,8 +279,8 @@ YUI.add('waitpanel', function (Y) {
 				var offset = -32 * mod;
 				var loadingImage = document.getElementById('rdWaitImage')
 				if (!loadingImage) {
-				    window.clearInterval(this.instance._intervalKey);
-                    this.instance._intervalKey = null
+				    window.clearInterval(this._intervalKey);
+                    this._intervalKey = null
 				    return;
 				}
 				LogiXML.WaitPanel._loadingCounter++;
@@ -290,14 +288,11 @@ YUI.add('waitpanel', function (Y) {
 				loadingImage.style.backgroundPosition = offset + 'px 0px'
 				
 				//Check for response cookie
-				if (LogiXML.isDownloadComplete(!!this.fileGuid)) {
-					LogiXML.unwatchDownload(this.fileGuid);
+				if (Y.Cookie && Y.Cookie.exists('rdFileDownloadComplete')) {
+					Y.Cookie.remove('rdFileDownloadComplete', {path: '/'});
 					LogiXML.WaitPanel.pageWaitPanel.hideWaitPanel();
-				}
-			}.bind({
-				instance: this,
-				fileGuid: fileGuid
-			});
+				}					
+			};
 
 			if (!this._intervalKey) {
 			    this._intervalKey = window.setInterval(animateImage, 30);

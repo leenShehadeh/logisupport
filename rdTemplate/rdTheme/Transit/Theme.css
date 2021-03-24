@@ -1802,32 +1802,3 @@ td.rdInactiveResizerColumn {
     z-index: 9999;
     min-width: 6px;
 }
-
-.ThemeSharingMessage a {
-  color: #aeaeae /*LinkColor*/ ;
-  text-decoration: none;
-}
-
-.ThemeNewMessage {
-    font-weight: bold;
-}
-
-.ThemeNewSharingMessage a {
-		font-weight: bold;
-    color: #aeaeae /*LinkColor*/;
-    text-decoration: none;
-}
-
-.ThemeNewMessageIndicator {
-		font-weight: bold;
-		color: #e73b3b;
-}
-
-.ThemeMessageTime {
-		color: #898989;
-}
-
-.ThemeNewMessageTime {
-		font-weight: bold;
-		color: #898989;
-}

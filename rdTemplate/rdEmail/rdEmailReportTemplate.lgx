@@ -59,7 +59,7 @@
 					<Label Caption="Subject " ID="lblSubject" />
 				</Column>
 				<Column ColSpan="2">
-					<InputText ID="rdSubject_rdActionID" InputSize="50" Tooltip="Enter the subject.">
+					<InputText ID="rdSubject_rdActionID" InputSize="60" Tooltip="Enter the subject.">
 						<Validation Type="Required" ErrorMsg="Enter the Subject." Class="ThemeErrorText" />
 					</InputText>
 				</Column>

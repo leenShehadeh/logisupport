@@ -59,42 +59,22 @@ YUI.add('popupmenu', function(Y) {
 			} 
 
 		    //Special case for conditioned menu options. 24118
-            var popup = Y.one('#' + sPopupId);
-
-            // selector above does not find popup under subdata table.
-            if (!popup)
-                popup = Y.one(document.getElementById(sPopupId));
-
-			if (!popup) {
-				popup = document.getElementById(sMenuId);
-				if (popup) {
-					popup = popup.getElementsByClassName("rdPopupMenu");
-					if (popup.length)
-						popup = popup[0];
-					else
-						popup = null;
-				}
-
-				if (!popup)
-					throw "Popup with id " + sPopupId + " was not found";
-
-				sPopupId = popup.getAttribute("id");
-				popup = Y.one(popup);
-			}
-
-            var ul = popup.all("UL");           
-			if (ul) {
-				var li = ul.get('childNodes');
-				if (li && li[0]) {
-					li = li[0];
-					for (var i = 0; i < li._nodes.length; i++) {
-						var item = li._nodes[i];
-						if (item && item.nodeName && item.nodeName.toLowerCase().indexOf("rdcondelement") >= 0) {
-							ul.insertBefore(item.firstChild, item);
-							item.parentNode.removeChild(item);
-						}
-					}
-				}
+			var popup = Y.one('#' + sPopupId);
+			if (popup) {
+			    var ul = popup.all("UL");
+			    if (ul) {
+			        var li = ul.get('childNodes');
+			        if (li && li[0]) {
+			            li = li[0];
+			            for (var i = 0; i < li._nodes.length; i++) {
+			                var item = li._nodes[i];
+                            if(item && item.nodeName && item.nodeName.toLowerCase().indexOf("rdcondelement") >= 0) {
+                                ul.insertBefore(item.firstChild, item);
+                                item.parentNode.removeChild(item);
+			                }
+			            }
+			        }
+			    }
 			}
 
 			if (sMenuId.indexOf('ppPanelMenu') > -1) {

@@ -1814,33 +1814,3 @@ td.rdInactiveResizerColumn {
     z-index: 9999;
     min-width: 6px;
 }
-
-.ThemeSharingMessage a {
-  color: #3FB0AC /*LinkColor*/ ;
-  text-decoration: none;
-}
-
-.ThemeNewMessage {
-    font-weight: bold;
-    color: #4a4a4a;
-}
-
-.ThemeNewSharingMessage a {
-		font-weight: bold;
-    color: #1b989d /*LinkColor*/;
-    text-decoration: none;
-}
-
-.ThemeNewMessageIndicator {
-		font-weight: bold;
-		color: #e73b3b;
-}
-
-.ThemeMessageTime {
-		color: #898989;
-}
-
-.ThemeNewMessageTime {
-		font-weight: bold;
-		color: #898989;
-}
