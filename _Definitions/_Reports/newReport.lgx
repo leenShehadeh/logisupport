@@ -84,7 +84,6 @@
 				<AxisLabelStyle
 					FontAngle="1"
 					FontColor="#666666"
-					FontFamily="Helvetica, &apos;Arial&apos;, &apos;Segoe UI&apos;, &apos;Avenir Next&apos;, &apos;Avenir&apos;, &apos;Helvetica Neue&apos;, &apos;sans-serif&apos;"
 					FontSize="10"
 				/>
 			</ChartXAxis>
@@ -99,7 +98,6 @@
 				/>
 				<AxisLabelStyle
 					FontColor="#666666"
-					FontFamily="Helvetica, &apos;Arial&apos;, &apos;Segoe UI&apos;, &apos;Avenir Next&apos;, &apos;Avenir&apos;, &apos;Helvetica Neue&apos;, &apos;sans-serif&apos;"
 					FontSize="10"
 				/>
 			</ChartYAxis>
@@ -117,11 +115,7 @@
 				LegendSpacing="5"
 				OffsetY="-5"
 				>
-				<LegendLabelStyle
-					FontFamily="Helvetica, &apos;Arial&apos;, &apos;Segoe UI&apos;, &apos;Avenir Next&apos;, &apos;Avenir&apos;, &apos;Helvetica Neue&apos;, &apos;sans-serif&apos;"
-					FontSize="12"
-					FontWeight="Normal"
-				/>
+				<LegendLabelStyle/>
 			</ChartCanvasLegend>
 		</ChartCanvas>
 		<Button
