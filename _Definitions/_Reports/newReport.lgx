@@ -84,6 +84,7 @@
 				<AxisLabelStyle
 					FontAngle="1"
 					FontColor="#666666"
+					FontFamily="kaigen-sans-j "
 					FontSize="10"
 				/>
 			</ChartXAxis>
@@ -98,6 +99,7 @@
 				/>
 				<AxisLabelStyle
 					FontColor="#666666"
+					FontFamily="kaigen-sans-j "
 					FontSize="10"
 				/>
 			</ChartYAxis>
@@ -115,7 +117,9 @@
 				LegendSpacing="5"
 				OffsetY="-5"
 				>
-				<LegendLabelStyle/>
+				<LegendLabelStyle
+					FontFamily="kaigen-sans-j "
+				/>
 			</ChartCanvasLegend>
 		</ChartCanvas>
 		<Button
