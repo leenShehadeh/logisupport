@@ -314,6 +314,7 @@
 					</ChartXAxis>
 				</Remark>
 			</ChartCanvas>
+			<HR/>
 			<ChartCanvas
 				ChartCaption="pie 2"
 				>
@@ -356,6 +357,7 @@
 					/>
 				</ChartCanvasLegend>
 			</ChartCanvas>
+			<HR/>
 			<ChartCanvas
 				ChartCaption="pi 3"
 				>
@@ -390,16 +392,34 @@
 						/>
 					</DataLayer>
 				</Series>
+				<Remark>
+					<ChartCanvasLegend
+						LegendOrientation="Vertical"
+						>
+						<LegendLabelStyle
+							FontColor="#666666"
+							FontFamily="kaigen-sans-j "
+							FontWeight="Normal"
+						/>
+					</ChartCanvasLegend>
+				</Remark>
 				<ChartCanvasLegend
+					AlignmentHorizontal="Right"
+					AlignmentVertical="Middle"
+					BackgroundColorTransparency="15"
+					BorderColorTransparency="15"
+					InsidePlotArea="False"
 					LegendOrientation="Vertical"
+					Width="180"
 					>
 					<LegendLabelStyle
 						FontColor="#666666"
-						FontFamily="kaigen-sans-j "
+						FontFamily="Helvetica, &apos;Arial&apos;, &apos;Segoe UI&apos;, &apos;Avenir Next&apos;, &apos;Avenir&apos;, &apos;Helvetica Neue&apos;, &apos;sans-serif&apos;"
 						FontWeight="Normal"
 					/>
 				</ChartCanvasLegend>
 			</ChartCanvas>
+			<HR/>
 			<ChartCanvas
 				ChartCaption="pi 4"
 				>
@@ -418,31 +438,48 @@
 						>
 						<StaticDataRow
 							REGCOUNT="2"
-							REGLABEL="Live1"
+							REGLABEL="Live2"
 						/>
 						<StaticDataRow
 							REGCOUNT="1"
-							REGLABEL="On Demand1"
+							REGLABEL="On Demand2"
 						/>
 						<StaticDataRow
 							REGCOUNT="5"
-							REGLABEL="None1"
+							REGLABEL="None2"
 						/>
 						<StaticDataRow
 							REGCOUNT="4"
-							REGLABEL="Both1"
+							REGLABEL="Both2"
 						/>
 					</DataLayer>
 				</Series>
+				<Remark>
+					<ChartCanvasLegend
+						AlignmentHorizontal="Right"
+						AlignmentVertical="Middle"
+						BackgroundColorTransparency="15"
+						BorderColorTransparency="15"
+						>
+						<LegendLabelStyle
+							FontColor="#666666"
+							FontFamily="kaigen-sans-j "
+							FontWeight="Normal"
+						/>
+					</ChartCanvasLegend>
+				</Remark>
 				<ChartCanvasLegend
 					AlignmentHorizontal="Right"
 					AlignmentVertical="Middle"
 					BackgroundColorTransparency="15"
 					BorderColorTransparency="15"
+					InsidePlotArea="False"
+					LegendOrientation="Vertical"
+					Width="180"
 					>
 					<LegendLabelStyle
 						FontColor="#666666"
-						FontFamily="kaigen-sans-j "
+						FontFamily="Helvetica, &apos;Arial&apos;, &apos;Segoe UI&apos;, &apos;Avenir Next&apos;, &apos;Avenir&apos;, &apos;Helvetica Neue&apos;, &apos;sans-serif&apos;"
 						FontWeight="Normal"
 					/>
 				</ChartCanvasLegend>
