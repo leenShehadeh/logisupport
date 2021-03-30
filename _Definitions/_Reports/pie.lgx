@@ -4,7 +4,7 @@
 	ID="pie"
 	>
 	<DefinitionModifierFile
-		DefinitionModifierFile="@Function.UserCulture~.xml"
+		DefinitionModifierFile="ja-JP.xml"
 	/>
 	<Body>
 		<Label
@@ -231,5 +231,4 @@
 			</Action>
 		</Button>
 	</Body>
-	<ideTestParams/>
 </Report>
