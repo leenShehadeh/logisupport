@@ -16,6 +16,11 @@
 	<SetAttribute XPath="//StaticDataRow[@REGLABEL='On Demand']" REGLABEL="オンデマンド" />
 	<SetAttribute XPath="//StaticDataRow[@REGLABEL='None']" REGLABEL="無し" />
 	<SetAttribute XPath="//StaticDataRow[@REGLABEL='Both']" REGLABEL="両方" />
+	
+		<SetAttribute XPath="//StaticDataRow[@REGLABEL='Live1']" REGLABEL="住む." />
+	<SetAttribute XPath="//StaticDataRow[@REGLABEL='On Demand1']" REGLABEL="オンデマンド." />
+	<SetAttribute XPath="//StaticDataRow[@REGLABEL='None1']" REGLABEL="無し." />
+	<SetAttribute XPath="//StaticDataRow[@REGLABEL='Both1']" REGLABEL="両方." />
 
 
 </DefinitionModifier>

@@ -418,36 +418,34 @@
 						>
 						<StaticDataRow
 							REGCOUNT="2"
-							REGLABEL="Live"
+							REGLABEL="Live1"
 						/>
 						<StaticDataRow
 							REGCOUNT="1"
-							REGLABEL="On Demand"
+							REGLABEL="On Demand1"
 						/>
 						<StaticDataRow
 							REGCOUNT="5"
-							REGLABEL="None"
+							REGLABEL="None1"
 						/>
 						<StaticDataRow
 							REGCOUNT="4"
-							REGLABEL="Both"
+							REGLABEL="Both1"
 						/>
 					</DataLayer>
 				</Series>
-				<Remark>
-					<ChartCanvasLegend
-						AlignmentHorizontal="Right"
-						AlignmentVertical="Middle"
-						BackgroundColorTransparency="15"
-						BorderColorTransparency="15"
-						>
-						<LegendLabelStyle
-							FontColor="#666666"
-							FontFamily="kaigen-sans-j "
-							FontWeight="Normal"
-						/>
-					</ChartCanvasLegend>
-				</Remark>
+				<ChartCanvasLegend
+					AlignmentHorizontal="Right"
+					AlignmentVertical="Middle"
+					BackgroundColorTransparency="15"
+					BorderColorTransparency="15"
+					>
+					<LegendLabelStyle
+						FontColor="#666666"
+						FontFamily="kaigen-sans-j "
+						FontWeight="Normal"
+					/>
+				</ChartCanvasLegend>
 			</ChartCanvas>
 		</Division>
 	</Body>
