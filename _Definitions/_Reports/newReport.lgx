@@ -390,13 +390,7 @@
 					</DataLayer>
 				</Series>
 				<ChartCanvasLegend
-					AlignmentHorizontal="Right"
-					AlignmentVertical="Middle"
-					BackgroundColorTransparency="15"
-					BorderColorTransparency="15"
-					InsidePlotArea="True"
 					LegendOrientation="Vertical"
-					Width="180"
 					>
 					<LegendLabelStyle
 						FontColor="#666666"
@@ -440,15 +434,16 @@
 					</DataLayer>
 				</Series>
 				<ChartCanvasLegend
-					AlignmentHorizontal="Right"
+					AlignmentHorizontal="Left"
+					AlignmentVertical="Middle"
 					BackgroundColorTransparency="15"
 					BorderColorTransparency="15"
 					InsidePlotArea="True"
 					LegendOrientation="Vertical"
+					MaxHeight="100"
 					>
 					<LegendLabelStyle
 						FontColor="#666666"
-						FontFamily="Helvetica, &apos;Arial&apos;, &apos;Segoe UI&apos;, &apos;Avenir Next&apos;, &apos;Avenir&apos;, &apos;Helvetica Neue&apos;, &apos;sans-serif&apos;"
 						FontWeight="Normal"
 					/>
 				</ChartCanvasLegend>
