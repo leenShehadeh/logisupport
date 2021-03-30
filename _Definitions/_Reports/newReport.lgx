@@ -434,13 +434,11 @@
 					</DataLayer>
 				</Series>
 				<ChartCanvasLegend
-					AlignmentHorizontal="Left"
+					AlignmentHorizontal="Right"
 					AlignmentVertical="Middle"
 					BackgroundColorTransparency="15"
 					BorderColorTransparency="15"
-					InsidePlotArea="True"
-					LegendOrientation="Vertical"
-					MaxHeight="100"
+					LegendOrientation="Horizontal"
 					>
 					<LegendLabelStyle
 						FontColor="#666666"
