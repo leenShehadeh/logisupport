@@ -258,6 +258,7 @@
 		<Division>
 			<ChartCanvas
 				ChartCaption="pie 1"
+				ID="customer"
 				>
 				<Series
 					ChartLabelColumn="REGLABEL"
@@ -394,7 +395,7 @@
 					>
 					<LegendLabelStyle
 						FontColor="#666666"
-						FontFamily="Helvetica, &apos;Arial&apos;, &apos;Segoe UI&apos;, &apos;Avenir Next&apos;, &apos;Avenir&apos;, &apos;Helvetica Neue&apos;, &apos;sans-serif&apos;"
+						FontFamily="kaigen-sans-j "
 						FontWeight="Normal"
 					/>
 				</ChartCanvasLegend>
@@ -433,18 +434,20 @@
 						/>
 					</DataLayer>
 				</Series>
-				<ChartCanvasLegend
-					AlignmentHorizontal="Right"
-					AlignmentVertical="Middle"
-					BackgroundColorTransparency="15"
-					BorderColorTransparency="15"
-					LegendOrientation="Horizontal"
-					>
-					<LegendLabelStyle
-						FontColor="#666666"
-						FontWeight="Normal"
-					/>
-				</ChartCanvasLegend>
+				<Remark>
+					<ChartCanvasLegend
+						AlignmentHorizontal="Right"
+						AlignmentVertical="Middle"
+						BackgroundColorTransparency="15"
+						BorderColorTransparency="15"
+						>
+						<LegendLabelStyle
+							FontColor="#666666"
+							FontFamily="kaigen-sans-j "
+							FontWeight="Normal"
+						/>
+					</ChartCanvasLegend>
+				</Remark>
 			</ChartCanvas>
 		</Division>
 	</Body>
