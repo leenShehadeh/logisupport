@@ -138,6 +138,11 @@
 
                     leftSibling.all('.rdChartCanvas').each(Y.LogiXML.ChartCanvas.reflowChart);
                     rightSibling.all('.rdChartCanvas').each(Y.LogiXML.ChartCanvas.reflowChart);
+                    //REPDEV-24538 New breadcrumb menu text ellipsis and resizing support
+                    if (Y.LogiXML.ChartDrillToBreadcrumb && Y.LogiXML.ChartDrillToBreadcrumb.reflowItem) {
+                        leftSibling.all('.rdChartDrillToBreadcrumb').each(Y.LogiXML.ChartDrillToBreadcrumb.reflowItem);
+                        rightSibling.all('.rdChartDrillToBreadcrumb').each(Y.LogiXML.ChartDrillToBreadcrumb.reflowItem);
+                    }
                     
                     var leftPanels = leftSibling.all('div.rdDashboardPanel');
                     leftPanels.each(function (panel) {

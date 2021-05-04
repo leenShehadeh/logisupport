@@ -221,6 +221,7 @@
                     if(sElement != null){                     
                         var sScript = LogiXML.getScriptFromLink(sElement.lastChild);
                         sElement.lastChild.href = 'javascript:void(0);';
+                        sElement.lastChild.onclick = function () { };
                         sElement.onclick = function () {
                             eval(this.sScript);
                         }.bind({

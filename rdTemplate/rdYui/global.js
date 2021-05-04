@@ -84,6 +84,15 @@ LogiXML.isFalseBlur = function () {
 
     return false;
 };
+
+LogiXML.isSelfTarget = function (target) {
+    return (!target
+        || target == "_self"
+        || target == window.name
+        || (target == "_top" && window === window.top)
+        || (target == "_parent" && window === window.parent));
+}
+
 LogiXML.rd = {};
 LogiXML.guids = {};
 
@@ -879,6 +888,7 @@ LogiXML.removeListener = function (listener) {
 
     var ele = listener.obj;
     var func = listener.func;
+    var eventName = listener.eventName;
 
     if (ele.removeEventListener)
         ele.removeEventListener(eventName, func);
@@ -966,8 +976,15 @@ LogiXML.getScriptFromLink = LogiXML.getScriptFromLink || function (a, bKeepJavas
 
         script = a.getAttribute("onclick");
 
-        if (!bKeepJavascriptPrefix && script && script.indexOf("javascript:") == 0)
-            script = script.substr(11);
+        if (script) {
+            if (bKeepJavascriptPrefix) {
+                if (script.indexOf("javascript:") != 0)
+                    script = "javascript:" + script;
+            } else {
+                if (script.indexOf("javascript:") == 0)
+                    script = script.substr(11);
+            }
+        }
 
         return script;
     }
@@ -1128,7 +1145,7 @@ LogiXML.getUrlParameters = LogiXML.getUrlParameters || function (url) {
 
     var i = url.indexOf("?");
 
-    var sParams, idx, startQuote;
+    var sParams, idx;
     var startQuote = null;
 
     if (i < 0) {
@@ -1161,10 +1178,11 @@ LogiXML.getUrlParameters = LogiXML.getUrlParameters || function (url) {
             length++;
 
         var parm = {};
+        var j;
 
         if (kvp[0]) { //RD20049
             if (startQuote) {
-                var j = kvp[0].indexOf(startQuote);
+                j = kvp[0].indexOf(startQuote);
 
                 if (j == 0)
                     break;
@@ -1176,13 +1194,20 @@ LogiXML.getUrlParameters = LogiXML.getUrlParameters || function (url) {
             }
 
             length += kvp[0].length;
+
+            // REPDEV-24196
+            // if this was extracted from a js string, then we should js string decode it
+            if (startQuote)
+                kvp[0] = eval(startQuote + kvp[0] + startQuote);
+
             kvp[0] = kvp[0].replace(/\+/g, "%20");
             parm.name = decodeURIComponent(kvp[0]);
         }
 
         if (kvp.length > 1) {
             if (startQuote) {
-                var j = kvp[1].indexOf(startQuote);
+                j = kvp[1].indexOf(startQuote);
+
                 if (j >= 0) {
                     if (j > 0)
                         kvp[1] = kvp[1].substr(0, j);
@@ -1197,7 +1222,14 @@ LogiXML.getUrlParameters = LogiXML.getUrlParameters || function (url) {
 
             if (kvp[1]) {
                 length += kvp[1].length;
+
+                // REPDEV-24196
+                // if this was extracted from a js string, then we should js string decode it
+                if (startQuote)
+                    kvp[1] = eval(startQuote + kvp[1] + startQuote);
+
                 kvp[1] = kvp[1].replace(/\+/g, "%20");
+
                 parm.value = decodeURIComponent(kvp[1]);
             } else {
                 parm.value = "";
@@ -1334,19 +1366,47 @@ LogiXML.setUrlParameter = LogiXML.setUrlParameter || function (url, name, value)
 
     return url;
 };
-LogiXML.submitAsync = function (form, onSuccess, onFail, headers) {
+LogiXML.submitAsync = LogiXML.submitAsync || function (form, onSuccess, onFail, headers) {
     var data = "";
     var url = form.action;
+    var files = [];
+    var i, j;
+
     if (form.elements && form.elements.length) {
-        for (var i = 0; i < form.elements.length; i++) {
+        for (i = 0; i < form.elements.length; i++) {
             var ele = form.elements[i];
-            if (ele.name)
-                data = data + rdGetInputValues(ele, true)
+            if (ele.name) {
+                if (ele.type.toLowerCase() == "file" && ele.files && ele.files.length)
+                    files.push(ele);
+                else
+                    data = data + rdGetInputValues(ele, true)
+            }
         }
     }
 
     if (data.length)
         data = data.substr(1); // remove leading ampersand
+
+    var contentType;
+
+    if (files.length && window.FormData) {
+        contentType = null;
+        var dataArr = LogiXML.getUrlParameters("?" + data);
+        data = new FormData();
+        for (i = 0; i < dataArr.length; i++) {
+            var d = dataArr[i];
+            data.append(d.name, d.value);
+        }
+        for (i = 0; i < files.length; i++) {
+            var eleFile = files[i];
+            for (j = 0; j < eleFile.files.length; j++) {
+                var f = eleFile.files[j];
+                data.append(eleFile.name, f, f.name);
+            }
+        }
+    }
+    else
+        contentType = "application/x-www-form-urlencoded";
 
     var req;
 
@@ -1370,7 +1430,8 @@ LogiXML.submitAsync = function (form, onSuccess, onFail, headers) {
         }
     }
 
-    req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    if (contentType)
+        req.setRequestHeader("Content-type", contentType);
 
     if (headers && headers.length) {
         for (var i = 0; i < headers.length; i++) {
@@ -1551,7 +1612,22 @@ LogiXML.addScript = LogiXML.addScript || function (srcs, onAfterLoad, onFail) {
 
     return true;
 };
+// Merges all stylesheets from doc into document
+LogiXML.mergeStylesheets = LogiXML.mergeStylesheets || function (doc) {
+    if (!doc || !doc.getElementsByTagName || doc === document)
+        return;
+
+    var ssLinks = doc.getElementsByTagName("LINK");
+    for (var i = 0; i < ssLinks.length; i++) {
+        var ssLink = ssLinks[i];
+        if (ssLink.getAttribute("rel") == "stylesheet" && ssLink.getAttribute("type") == "text/css")
+            LogiXML.addStylesheet(ssLink.getAttribute("href"));
+    }
+};
 LogiXML.addStylesheet = LogiXML.addStylesheet || function (href) {
+    if (!href)
+        return;
+
     var head = document.getElementsByTagName("HEAD");
 
     if (head && head.length)
@@ -1595,6 +1671,49 @@ LogiXML.createElement = LogiXML.createElement || function (html) {
     return div.removeChild(div.firstChild);
 };
 
+// Y.one("id$=somevalue") doesn't work when the id contains certain special characters
+LogiXML.getElementByIdEnding = LogiXML.getElementByIdEnding || function (ele, ending, tagName) {
+    var isYui;
+
+    if (ele && !(ele instanceof HTMLElement)) {
+        isYui = true;
+        ele = ele._node;
+    }
+    else
+        isYui = false;
+
+    if (!ele || !ending)
+        return null;
+
+    var potentials;
+
+    if (tagName)
+        potentials = ele.getElementsByTagName(tagName);
+    else
+        potentials = ele.childNodes;
+
+    var p = null;
+    for (var i = 0; i < potentials.length; i++) {
+        p = potentials[i];
+
+        if (p.id && p.id.lastIndexOf(ending) === p.id.length - ending.length)
+            break;
+
+        if (!tagName) {
+            p = LogiXML.getElementByIdEnding(p, ending);
+            if (p)
+                break;
+        }
+
+        p = null;
+    }
+
+    if (p && isYui)
+        return Y.one(p);
+
+    return p;
+};
+
 LogiXML.resolveScriptSrc = LogiXML.resolveScriptSrc || function (src) {
     if (src && (src.indexOf("rdTemplate/") == 0 || src.indexOf("/rdTemplate/") >= 0)) {
         version = LogiXML.getUrlParameter(src, "v");
@@ -1606,10 +1725,106 @@ LogiXML.resolveScriptSrc = LogiXML.resolveScriptSrc || function (src) {
 };
 
 // When an ID contains a period, it messes up the YUI selectors.
-// This changes all backslashes to double backslashes, and periods to backslash periods.
+// This changes all periods to backslash periods, and all other special characters to the unicode escape sequence.
+// Always encodes first character.
 // Use this when calling functions like addHandle("#" + LogiXML.escapeSelector(node.get('id')), ...)
 LogiXML.escapeSelector = function (unescaped) {
-    return unescaped.replace(/\\/g, "\\\\").replace(/\./g, "\\.");
+    if (!unescaped)
+        return unescaped;
+
+    // REPDEV-24996 always encode first character even if it is not a special character
+    var firstChar = unescaped.charCodeAt(0).toString(16).toLowerCase();
+    while (firstChar.length < 6)
+        firstChar = "0" + firstChar;
+    firstChar = "\\" + firstChar;
+
+    if (unescaped.length == 1)
+        return firstChar;
+
+    // !, ", #, $, %, &, ', (, ), *, +, ,, -, ., /, :, ;, <, =, >, ?, @, [, \, ], ^, `, {, |, }, and ~.
+    return firstChar + unescaped.substr(1).replace(/\\/g, "\\00005c").replace(/\./g, "\\.")
+        .replace(/ /g, "\\000020")
+        .replace(/!/g, "\\000021")
+        .replace(/"/g, "\\000022")
+        .replace(/#/g, "\\000023")
+        .replace(/\$/g, "\\000024")
+        .replace(/%/g, "\\000025")
+        .replace(/&/g, "\\000026")
+        .replace(/'/g, "\\000027")
+        .replace(/\(/g, "\\000028")
+        .replace(/\)/g, "\\000029")
+        .replace(/\*/g, "\\00002a")
+        .replace(/\+/g, "\\00002b")
+        .replace(/,/g, "\\00002c")
+        .replace(/-/g, "\\00002d")
+        .replace(/\//g, "\\00002f")
+        .replace(/:/g, "\\00003a")
+        .replace(/;/g, "\\00003b")
+        .replace(/</g, "\\00003c")
+        .replace(/=/g, "\\00003d")
+        .replace(/>/g, "\\00003e")
+        .replace(/\?/g, "\\00003f")
+        .replace(/@/g, "\\000040")
+        .replace(/\[/g, "\\00005b")
+        .replace(/\]/g, "\\00005d")
+        .replace(/\^/g, "\\00005e")
+        .replace(/`/g, "\\000060")
+        .replace(/\{/g, "\\00007b")
+        .replace(/\|/g, "\\00007c")
+        .replace(/\}/g, "\\00007d")
+        .replace(/\~/g, "\\00007e")
+        ;
+};
+
+LogiXML.fixYuiTest = LogiXML.fixYuiTest || function (node) {
+    if (node.__rdOriginalYuiTest)
+        return;
+
+    node.__rdOriginalYuiTest = node.test;
+    node.test = function (s) {
+        if (s && typeof s === "string" && s[0] == "#") {
+            if (Y.one(s) === this)
+                return true;
+        }
+
+        return this.__rdOriginalYuiTest.apply(this, arguments);
+    }.bind(node);
+};
+
+LogiXML.getAncestorByTagName = LogiXML.getAncestorByTagName || function (ele, tagName, includeSelf) {
+    var isYui = false;
+
+    if (ele && !(ele instanceof HTMLElement)) {
+        isYui = true;
+        ele = ele._node;
+    }
+
+    if (!ele || !tagName)
+        return null;
+
+    tagName = tagName.toLowerCase();
+
+    if (includeSelf) {
+        if (ele.tagName.toLowerCase() === tagName) {
+            if (isYui)
+                return Y.one(ele);
+
+            return ele;
+        }
+    }
+
+    ele = ele.parentNode;
+    while (ele && ele.tagName.toLowerCase() != tagName) {
+        ele = ele.parentNode;
+    }
+
+    if (!ele)
+        return null;
+
+    if (isYui)
+        return Y.one(ele);
+
+    return ele;
 };
 
 LogiXML.xmlStringToDoc = LogiXML.xmlStringToDoc || function (xmlString) {
@@ -1623,6 +1838,72 @@ LogiXML.xmlStringToDoc = LogiXML.xmlStringToDoc || function (xmlString) {
     xmlDoc.async = false;
     xmlDoc.loadXML(kml);
     return xmlDoc;
+};
+
+LogiXML.watchDownload = LogiXML.watchDownload || function (fileGuid) {
+    if (!fileGuid || !!LogiXML._downloadForm)
+        return; // already watching
+
+    var url = window.location.href;
+    var i = url.indexOf("?");
+    if (i > 0)
+        url = url.substr(0, i);
+
+    var form = document.createElement("FORM");
+    form.id = "rdExportFileForm";
+    form.style.display = "none";
+    form.action = url;
+    form.method = "POST";
+    document.body.appendChild(form);
+
+    var hdnGuid = document.createElement("INPUT");
+    hdnGuid.type = "hidden";
+    hdnGuid.name = "rdExportFileGuid";
+    hdnGuid.value = fileGuid;
+
+    form.appendChild(hdnGuid);
+
+    LogiXML._downloadForm = form;
+
+    LogiXML._downloadFormSuccess = function () {
+        if (!LogiXML._downloadForm)
+            return;
+
+        switch (this.status) {
+            case 201: // Complete
+                LogiXML.unwatchDownload();
+                break;
+            case 202: // Accepted - Check again
+                setTimeout(function () {
+                    if (LogiXML._downloadForm)
+                        LogiXML.submitAsync(LogiXML._downloadForm, LogiXML._downloadFormSuccess);
+                }, 1000);
+                break;
+        }
+    };
+
+    LogiXML.submitAsync(LogiXML._downloadForm, LogiXML._downloadFormSuccess);
+};
+
+LogiXML.unwatchDownload = LogiXML.unwatchDownload || function () {
+    if (Y.Cookie && Y.Cookie.exists('rdFileDownloadComplete'))
+        Y.Cookie.remove('rdFileDownloadComplete', { path: '/' });
+
+    if (LogiXML._downloadForm) {
+        LogiXML._downloadForm.parentNode.removeChild(LogiXML._downloadForm);
+        LogiXML._downloadForm = null;
+        LogiXML._downloadFormSuccess = null;
+    }
+};
+
+LogiXML.isDownloadComplete = LogiXML.isDownloadComplete || function (checkForm) {
+    if (Y.Cookie && Y.Cookie.exists('rdFileDownloadComplete'))
+        return true;
+
+    if (!checkForm)
+        return false;
+
+    return !LogiXML._downloadForm;
 };
 
 function rdGetCookie(varName) {
@@ -1746,6 +2027,33 @@ function encodeHtmlInput(value) {
     return div.innerHTML;
 }
 
+// Metadata Builder and New Data Table Wizard from Studio
+LogiXML.studioWizardFixup = LogiXML.studioWizardFixup || function () {
+	if (LogiXML.getUrlParameter(location.href, "rdForWizard") === "True") {
+		LogiXML.studioFx = LogiXML.studioFx || {};
+
+		var anchors = document.getElementsByTagName("A");
+		for (var i = 0; i < anchors.length; i++) {
+			var a = anchors[i];
+			var href = a.getAttribute("href");
+			var onclick = a.getAttribute("onclick");
+
+			if (href === "javascript:void(0);" && onclick) {
+				a.setAttribute("onclick", "return true;");
+
+				var fx = (new Function(onclick)).bind(a);
+				var fxName = "rdStudio" + LogiXML.getGuid().replace(/-/g, "");
+				LogiXML.studioFx[fxName] = fx;
+
+				a.setAttribute("href", "javascript:(function(){LogiXML.studioFx." + fxName + "();return;})();");
+			}
+		}
+
+		LogiXML.Ajax.AjaxTarget().on('reinitialize', LogiXML.studioWizardFixup);
+	}
+};
+
 document.addEventListener("DOMContentLoaded", function () {
-    LogiXML.DOMContentLoaded = true;
+	LogiXML.studioWizardFixup();
+	LogiXML.DOMContentLoaded = true;
 });

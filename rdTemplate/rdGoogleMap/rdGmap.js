@@ -2,6 +2,7 @@ var gMaps = gMaps || [];
 var ie7Processed = [];
 var userMarkers = userMarkers || [];
 var userClusterers = userClusterers || [];
+var rdPolygonColumnID = "rdCoordinates";
 
 function rdGmapLoad(sMapID) {
     var spanMap = document.getElementById(sMapID)
@@ -163,10 +164,10 @@ function rdGmapLoad(sMapID) {
         //Validate the marker.
         var lat
         var lng
-        if (eleMapMarkerRow.getAttribute("rdCoordinates").length != 0) {
+        if (eleMapMarkerRow.getAttribute(rdPolygonColumnID).length != 0) {
             //For KML files.
-            lat = parseFloat(eleMapMarkerRow.getAttribute("rdCoordinates").split(",")[1])
-            lng = parseFloat(eleMapMarkerRow.getAttribute("rdCoordinates").split(",")[0])
+            lat = parseFloat(eleMapMarkerRow.getAttribute(rdPolygonColumnID).split(",")[1])
+            lng = parseFloat(eleMapMarkerRow.getAttribute(rdPolygonColumnID).split(",")[0])
         } else {
             lat = parseFloat(eleMapMarkerRow.getAttribute("Latitude"))
             lng = parseFloat(eleMapMarkerRow.getAttribute("Longitude"))
@@ -245,10 +246,24 @@ function rdGmapLoad(sMapID) {
     if (aMapPolygonRows.length > 0) {
         for (var i = 0; i < aMapPolygonRows.length; i++) {
             var eleMapPolygonRow = aMapPolygonRows[i]
-            if (eleMapPolygonRow.getAttribute("rdEncodedPoints").length > 0) {
-                var polygonPoints = google.maps.geometry.encoding.decodePath(eleMapPolygonRow.getAttribute("rdEncodedPoints"))
+            var encodedPoints = eleMapPolygonRow.getAttribute("rdEncodedPoints");
+            if (encodedPoints.length > 0) {
+                var multi = encodedPoints.split("RDMULTIPOLY");
+                var polyPaths = [];
+
+                for (var j = 0; j < multi.length; j++) {
+                    var encPts = multi[j];
+                    if (encPts) {
+                        var polygonPoints = google.maps.geometry.encoding.decodePath(encPts);
+                        polyPaths.push(polygonPoints);
+                    }
+                }
+
+                if (!polyPaths.length)
+                    continue;
+
                 var encodedPolygon = new google.maps.Polygon({
-                    paths: polygonPoints,
+                    paths: polyPaths,
                     strokeColor: eleMapPolygonRow.getAttribute("rdBorderColor"),
                     strokeOpacity: eleMapPolygonRow.getAttribute("rdBorderOpacity"),
                     strokeWeight: parseInt(eleMapPolygonRow.getAttribute("rdBorderThickness")),
@@ -270,10 +285,24 @@ function rdGmapLoad(sMapID) {
     if (aMapPolylineRows.length > 0) {
         for (var i = 0; i < aMapPolylineRows.length; i++) {
             var eleMapPolylineRow = aMapPolylineRows[i]
-            if (eleMapPolylineRow.getAttribute("rdEncodedPoints").length > 0) {
-                var plPoints = google.maps.geometry.encoding.decodePath(eleMapPolylineRow.getAttribute("rdEncodedPoints"))
+            var encodedPoints = eleMapPolylineRow.getAttribute("rdEncodedPoints");
+            if (encodedPoints.length > 0) {
+                var multi = encodedPoints.split("RDMULTIPOLY");
+                var polyPaths = [];
+
+                for (var j = 0; j < multi.length; j++) {
+                    var encPts = multi[j];
+                    if (encPts) {
+                        var plPoints = google.maps.geometry.encoding.decodePath(encPts);
+                        polyPaths.push(plPoints);
+                    }
+                }
+
+                if (!polyPaths.length)
+                    continue;
+
                 var plObject = new google.maps.Polyline({
-                    path: plPoints,
+                    path: polyPaths,
                     strokeColor: eleMapPolylineRow.getAttribute("rdBorderColor"),
                     strokeOpacity: eleMapPolylineRow.getAttribute("rdBorderOpacity"),
                     strokeWeight: parseInt(eleMapPolylineRow.getAttribute("rdBorderThickness")),
@@ -389,10 +418,10 @@ function reloadMarkers(newMarkers, sOriginResponse) {
         //Validate the marker.
         var lat
         var lng
-        if (eleMapMarkerRow.getAttribute("rdCoordinates").length != 0) {
+        if (eleMapMarkerRow.getAttribute(rdPolygonColumnID).length != 0) {
             //For KML files.
-            lat = parseFloat(eleMapMarkerRow.getAttribute("rdCoordinates").split(",")[1])
-            lng = parseFloat(eleMapMarkerRow.getAttribute("rdCoordinates").split(",")[0])
+            lat = parseFloat(eleMapMarkerRow.getAttribute(rdPolygonColumnID).split(",")[1])
+            lng = parseFloat(eleMapMarkerRow.getAttribute(rdPolygonColumnID).split(",")[0])
         } else {
             lat = parseFloat(eleMapMarkerRow.getAttribute("Latitude"))
             lng = parseFloat(eleMapMarkerRow.getAttribute("Longitude"))

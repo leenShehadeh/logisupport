@@ -167,6 +167,7 @@ function rdAjaxRequest(commandParams, bValidate, sConfirm, bProcess, fnCallback,
 
     try {
 	    /* Configuration object for POST transaction */
+        var skipPageLoadScripts = commandParams.indexOf("rdSkipPageLoadScripts=True") >= 0;
 
 		var cfg = {
 			method: "POST",
@@ -176,7 +177,8 @@ function rdAjaxRequest(commandParams, bValidate, sConfirm, bProcess, fnCallback,
 			    failure: handleFailure
 			},
 			arguments: {
-			    timeoutID: tTimeout
+                timeoutID: tTimeout,
+                skipPageLoadScripts: skipPageLoadScripts
 			}
 		};
 		if (isUpload) {
@@ -193,7 +195,8 @@ function rdAjaxRequest(commandParams, bValidate, sConfirm, bProcess, fnCallback,
 		            failure: handleFailure
 		        },
 		        arguments: {
-		            timeoutID: tTimeout
+                    timeoutID: tTimeout,
+                    skipPageLoadScripts: skipPageLoadScripts
 		        }
 		    };
 	    }
@@ -210,7 +213,7 @@ function rdAjaxRequest(commandParams, bValidate, sConfirm, bProcess, fnCallback,
 
 var handleSuccess = function(id, o, args){
     if(o.responseText !== undefined) {
-        rdUpdatePage(o.responseXML, o.responseText);
+        rdUpdatePage(o.responseXML, o.responseText, args.skipPageLoadScripts);
             var fnCallback = arguments[arguments.length - 1];
             if ( typeof fnCallback === 'function' ) {
                 fnCallback(o);
@@ -442,7 +445,7 @@ function rdAjaxEncodeValue(sValue){
     return sValue
 }
 
-function rdUpdatePage(xmlResponse, sResponse) {
+function rdUpdatePage(xmlResponse, sResponse, skipPageLoadScripts) {
     bCurrentIFrameResized = false;
 
     var ret = __rdUpdatePage.apply(this, arguments);
@@ -453,7 +456,7 @@ function rdUpdatePage(xmlResponse, sResponse) {
     return ret;
 }
 
-function __rdUpdatePage(xmlResponse, sResponse) {
+function __rdUpdatePage(xmlResponse, sResponse, skipPageLoadScripts) {
 
     if (sResponse.length != 0) {
 	    if (sResponse.indexOf("rdDebugUrl=")!=-1) { 
@@ -527,10 +530,10 @@ function __rdUpdatePage(xmlResponse, sResponse) {
 	    window.status = ""
 
         //chartPartialUpdate (used in realtime ChartCanvas)
-        var justObjectUpdate = false;
-	    if (sResponse.indexOf("data-linked-object-type=") != -1) {
-	        justObjectUpdate = true;
-        }
+        if (skipPageLoadScripts || sResponse.indexOf("data-linked-object-type=") != -1)
+            skipPageLoadScripts = true;
+        else
+            skipPageLoadScripts = false;
 
         var sElementIDs = [];
         var refreshIFrames = true;
@@ -548,6 +551,7 @@ function __rdUpdatePage(xmlResponse, sResponse) {
 		                rdValidateForm = new Function(strrdValidateForm);
 		            }
 
+				    sElementIDs = xmlResponse.documentElement.getAttribute('rdRefreshElementID').split(",");
 				    if (isDataTablePaging && isDataTablePaging.indexOf("rdDataTableDiv") > -1) {
 				        //Find the HTML TABLE's DIV.
 				        var sTableDivID = xmlResponse.documentElement.getAttribute('id')
@@ -558,7 +562,6 @@ function __rdUpdatePage(xmlResponse, sResponse) {
 				        }
 				    }
                     else{
-					    sElementIDs = xmlResponse.documentElement.getAttribute('rdRefreshElementID').split(",")
                         for (var i = 0; i < sElementIDs.length; i++) {
                             if (sElementIDs[i] == "rdStopAjaxReplace")
                                 break;
@@ -571,7 +574,7 @@ function __rdUpdatePage(xmlResponse, sResponse) {
                                 var node = Y.one('#' + LogiXML.escapeSelector(sElementIDs[i]));
 
                                 if (node.hasClass("rdDashboardTabs"))
-                                    justObjectUpdate = false;
+                                    skipPageLoadScripts = false;
 
                                 var panelContainer = node.ancestor('div.rdDashboardPanel');
                                 if (panelContainer) {
@@ -642,12 +645,15 @@ function __rdUpdatePage(xmlResponse, sResponse) {
 					            }
 					        }
 					    }
-
-                        // now that everything is refreshed, trigger the refreshed events
-                        for (var i = 0; i < sElementIDs.length; i++) {
-                            LogiXML.Ajax.AjaxTarget().fire('refreshed_' + sElementIDs[i]);
-                        }
 				    }
+
+                    // add any new stylesheets
+                    LogiXML.mergeStylesheets(xmlResponse);
+
+                    // now that everything is refreshed, trigger the refreshed events
+                    for (var i = 0; i < sElementIDs.length; i++) {
+                        LogiXML.Ajax.AjaxTarget().fire('refreshed_' + sElementIDs[i]);
+                    }
 				  
 		            //Checkbox List on Ajax call needs to be initialized 18993
 					if (sResponse.indexOf("data-checkboxlist") > 0) {
@@ -797,7 +803,7 @@ function __rdUpdatePage(xmlResponse, sResponse) {
         //event the scripts need to be run before the event is fired.
         //
         //May need to run some script.
-	    if (!justObjectUpdate) {
+	    if (!skipPageLoadScripts) {
             rdAjaxRunOnLoad(xmlResponse);
 
             // If this was a refresh for specific elements, do not reinitialize unrelated iframes.
@@ -877,6 +883,8 @@ function __rdUpdatePage(xmlResponse, sResponse) {
 
     if (bStopFeedback) 
 	    rdShowAjaxFeedback(false);
+
+    LogiXML.studioWizardFixup();
 }
 
 function replaceHTMLElement(eleOld, sResponse, newElementID) {
@@ -975,6 +983,24 @@ function replaceHTMLElement(eleOld, sResponse, newElementID) {
 		oldYuiNode.remove(true);		
 		
 		placeHolder.replace( newYuiNode );
+        // REPDEV-24115
+        // Very specific - for automation on Windows Server 2019 in IE 11
+        // IE 11 in AWS bug we need to reassociate the inline events with setAttribute
+        var isIE11 = !!window.MSInputMethodContext && !!document.documentMode;
+        if (isIE11) {
+            var fxReApplyEvents = function (childNode) {
+                var attrs = childNode._node.attributes;
+                for (var i = 0; attrs != null && i < attrs.length; i++) { //REPDEV-25176, attrs is null.
+                    var attr = attrs[i];
+
+                    if (attr.name.toLowerCase().indexOf('on') == 0)
+                        childNode._node.setAttribute(attr.name, attr.value);
+                }
+            };
+            Y.each(newYuiNode.all('*'), fxReApplyEvents);
+            fxReApplyEvents(newYuiNode);
+        }
+
 		placeHolder.remove(true);
 
         // trigger onchange event for all elements that changed
@@ -1146,7 +1172,16 @@ function rdShowAjaxFeedback(bShow, sCommandParams) {
         }
     }
 }
-
+function rdGetCheckedValueFromRadioButtons(ele) {
+    var sElementId = ele.id.replace(/rdRadioButtonGroup/g, "")
+    var cInputs = ele.getElementsByTagName("INPUT")
+    for (var i = 0; i < cInputs.length; i++) {
+        if (cInputs[i].checked && cInputs[i].name == sElementId) {
+            return cInputs[i].value;
+        }
+    }
+    return '';
+}
 function rdGetSelectedValuesFromCheckboxList(inputName, asArray) {
     var eleList = Y.all('input[name="' + inputName + '"]'),
         uniqueValues = new Array(),
@@ -1155,7 +1190,10 @@ function rdGetSelectedValuesFromCheckboxList(inputName, asArray) {
 
     eleList.each(function (node) {
         if (node.get('checked') == true) {
-            nodeValue = node.get('value');
+            nodeValue = node.get("value");
+            if (!nodeValue)
+                nodeValue = node._node.parentNode.innerText;
+
             if (Y.Array.indexOf(uniqueValues, nodeValue) == -1) {
                 uniqueValues.push(nodeValue);
             }
@@ -1176,7 +1214,10 @@ function rdGetSelectedValuesFromCheckboxList(inputName, asArray) {
             window.rdInputValueDelimiter = ','
         }
 
-        sReturn = uniqueValues.join(rdInputValueDelimiter);
+        if (LogiXML.rdInputTextDelimiter)
+            sReturn = LogiXML.rdInputTextDelimiter.delimit(uniqueValues, rdInputValueDelimiter, "\"", "\\");
+        else
+            sReturn = uniqueValues.join(rdInputValueDelimiter);
     }
     return sReturn;
 }
@@ -1222,6 +1263,15 @@ function rdGetInputValues(ele, urlRequest) {
         else
             return sValue;
     }
+    //rdRadioButtonGroup 
+    if (ele.getAttribute("type") == "rdRadioButtonGroup") {
+        sValue = rdGetCheckedValueFromRadioButtons(ele);
+        if (urlRequest)
+            return '&' + ele.id + "=" + rdAjaxEncodeValue(sValue);
+        else
+            return sValue;
+    }
+
     //19809
     else if (ele.getAttribute("rdelement") == "Tabs") {
         var Tabs = document.getElementById("rdActiveTabId_" + ele.id);

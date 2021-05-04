@@ -71,10 +71,10 @@ var persistViewState = function (value, type, chart) {
     input.value = value;
 };
 
-var populateLegendVisibilityData = function() {
+var populateLegendVisibilityData = function(forceHide) {
     
-    this.isLegendInvisible = !this.visible;
-    var currentChart = this.chart;
+    this.isLegendInvisible = typeof(forceHide) == "boolean" || !this.visible;
+    var currentChart = this.chart || this.series.chart;
 
     var data = currentChart.legend.getAllItems();
 
@@ -114,6 +114,17 @@ var setLegendStateEventHandlers = function (chart) {
     for (var j = 0; j < chart.series.length; j++) {
         Highcharts.addEvent(chart.series[j], 'hide', populateLegendVisibilityData);
         Highcharts.addEvent(chart.series[j], 'show', populateLegendVisibilityData);
+        if (chart.series[j].type == "pie") {
+            var currentPieSeries = chart.series[j];
+            var currentPieSeriesLegendItems = chart.legend.getAllItems().filter(function (item) {
+                return item.series == currentPieSeries;
+            });
+            currentPieSeriesLegendItems.forEach(function (item) {
+                Highcharts.addEvent(item, 'legendItemClick', function () {
+                        populateLegendVisibilityData.call(this, true);
+                });
+            });
+        }
     }
 };
 var setZoomStateEventHandlers = function (chart) {
@@ -221,7 +232,12 @@ var restoreLegendState = function(chart) {
         }
         if (Array.isArray(currentItem)) {
             for (var j = 0; j < currentItem.length; j++) {
-                var pieIndex = currentItem[j];
+                var pieIndex;
+                if (typeof (currentItem[j]) === "object" && currentItem[j].value !== undefined) {
+                    pieIndex = currentItem[j].value;
+                } else {
+                    pieIndex = currentItem[j];
+                }
                 if (pieIndex === null || pieIndex === undefined)
                     continue;
 

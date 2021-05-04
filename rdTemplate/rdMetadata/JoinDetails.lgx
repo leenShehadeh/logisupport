@@ -15,6 +15,20 @@
 	<IncludeScriptFile
 		IncludedScriptFile="rdTemplate/rdMetadata/rdUiService.js"
 	/>
+	<LocalData>
+		<DataLayer
+			EnableSettings="True"
+			ID="dlMetadataElement"
+			Type="XMLFile"
+			XMLFile="@Function.AppPhysicalPath~/_Definitions/_Settings.lgx"
+			XPath="Setting/Connections/Connection[@ID=&apos;@Request.ConnectionID~&apos;]/Metadata[@ID=&apos;@Request.MetadataID~&apos;]"
+			>
+			<SwitchColumn DataColumn="MetadataUrl" ID="MetadataUrl">
+				<SwitchIf NewValue="@Function.AppPhysicalPath~/_Metadata/@Request.MetadataID~.lgx" />
+				<SwitchElse NewValue="@Data.MetadataUrl~" />
+			</SwitchColumn>
+		</DataLayer>
+	</LocalData>
 	<Body>
 		<Label
 			Caption="Metadata Join Details"
@@ -46,7 +60,7 @@
 					<Action
 						ConfirmMessage="Add a new Join?"
             ID="actNewJoin"
-						Javascript="rdMetadataAddNewJoin(&apos;MetadataID=@Request!Url.MetadataID~&amp;TableName=@Request!Url.TableName~&apos;);return false;"
+						Javascript="rdMetadataAddNewJoin(&apos;MetadataID=@Request.MetadataID~&amp;TableName=@Request.TableName~&apos;,&apos;@Request.MetadataUrl~&apos;);return false;"
 						Type="Javascript"
 					/>
 				</Label>
@@ -97,11 +111,14 @@
 							<DataLayer
 								ID="dtTables"
 								Type="XMLFile"
-								XMLFile="@Function.AppPhysicalPath~/_Metadata/@Request.MetadataID~.lgx"
+								XMLFile="@Local.MetadataUrl~"
 								>
 								<Flattener
 									DataRowElementNames="Table"
 									PrependElementNames="True"
+								/>
+								<SortFilter
+									SortColumn="Table_TableName"
 								/>
 							</DataLayer>
 							<EventHandler
@@ -126,11 +143,14 @@
 							<DataLayer
 								ID="dtTables"
 								Type="XMLFile"
-								XMLFile="@Function.AppPhysicalPath~/_Metadata/@Request.MetadataID~.lgx"
+								XMLFile="@Local.MetadataUrl~"
 								>
 								<Flattener
 									DataRowElementNames="Table"
 									PrependElementNames="True"
+								/>
+								<SortFilter
+									SortColumn="Table_TableName"
 								/>
 							</DataLayer>
 							<EventHandler
@@ -156,13 +176,16 @@
 							<DataLayer
 								ID="dtColumns"
 								Type="XMLFile"
-								XMLFile="@Function.AppPhysicalPath~/_Metadata/@Request.MetadataID~.lgx"
+								XMLFile="@Local.MetadataUrl~"
 								>
 								<Flattener
 									BottomLevelElementName="Column"
 									DataRowElementNames="Column"
 									PrependElementNames="True"
 									TopLevelXPath="Metadata/Table[@TableName=&apos;@Request.TableName~&apos;]"
+								/>
+								<SortFilter
+									SortColumn="Column_ColumnName"
 								/>
 							</DataLayer>
 							<EventHandler
@@ -187,13 +210,16 @@
 							<DataLayer
 								ID="dtColumns"
 								Type="XMLFile"
-								XMLFile="@Function.AppPhysicalPath~/_Metadata/@Request.MetadataID~.lgx"
+								XMLFile="@Local.MetadataUrl~"
 								>
 								<Flattener
 									BottomLevelElementName="Column"
 									DataRowElementNames="Column"
 									PrependElementNames="True"
 									TopLevelXPath="Metadata/Table[@TableName=&apos;@Request.TableName~&apos;]"
+								/>
+								<SortFilter
+									SortColumn="Column_ColumnName"
 								/>
 							</DataLayer>
 							<EventHandler

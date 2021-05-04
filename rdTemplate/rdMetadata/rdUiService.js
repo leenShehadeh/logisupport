@@ -632,19 +632,37 @@ function rdMetadataTableRemove(eleClicked, sTableName) {
 
 
 //Joins
-function rdMetadataAddNewJoin(sMetadataID, sTableName) {
+function rdMetadataAddNewJoin() {
+    var sMetadataID = document.getElementById("hiddenMetadataID").value;
+    var sTableName = document.getElementById("hiddenTableName").value;
+
     var sUrl = "rdTemplate/rdMetadata/rdUiService.aspx?"
-    sUrl += "Command=AddJoin"
-    sUrl += "&MetadataID=" + encodeURIComponent(sMetadataID)
-    sUrl += "&TableName=" + encodeURIComponent(sTableName)
-    rdAjaxRequest(sUrl, true, null, false, function () { rdMetadataShowJoinEdit(sMetadataID, sTableName) })
+        + "Command=AddJoin"
+        + "&MetadataID=" + encodeURIComponent(sMetadataID)
+        + "&TableName=" + encodeURIComponent(sTableName);
+
+    var callback = function () {
+        rdMetadataShowJoinEdit(this.sMetadataID, this.sTableName);
+    }.bind({
+        sMetadataID: sMetadataID,
+        sTableName: sTableName
+    });
+
+    rdAjaxRequest(sUrl, true, null, false, callback);
 }
-var rdMetadataReturnedJoinRelationID
+var rdMetadataReturnedJoinRelationID;
 function rdMetadataShowJoinEdit(sMetadataID, sTableName) {
-    sMetadataID = encodeURIComponent(sMetadataID)
-    sTableName = encodeURIComponent(sTableName)
-    var sUrl = "rdPage.aspx?rdReport=rdTemplate/rdMetadata/JoinEdit&MetadataID=" + sMetadataID + "&TableName=" + sTableName + "&JoinRelationID=" + rdMetadataReturnedJoinRelationID
-    NavigateLink2(sUrl, "_self")
+    var sConnectionID = document.getElementById("hiddenConnectionID").value;
+    var sMetadataUrl = document.getElementById("hiddenMetadataUrl").value;
+
+    var sUrl = "rdPage.aspx?rdReport=rdTemplate/rdMetadata/JoinEdit"
+        + "&ConnectionID=" + encodeURIComponent(sConnectionID)
+        + "&MetadataID=" + encodeURIComponent(sMetadataID)
+        + "&TableName=" + encodeURIComponent(sTableName)
+        + "&MetadataUrl=" + encodeURIComponent(sMetadataUrl)
+        + "&JoinRelationID=" + rdMetadataReturnedJoinRelationID;
+
+    NavigateLink2(sUrl, "_self");
 }
 function rdMetadataJoinRemove(eleClicked, sParams) {
     var sUrl = "rdTemplate/rdMetadata/rdUiService.aspx?"
@@ -792,3 +810,18 @@ function rdMetadataShowGetColumnsDialog() {
 
     ShowElement('', 'pupSqlSource', 'Show', '');
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    var disable = function () {
+        var disableds = document.getElementsByClassName("rdDisabled");
+        for (var i = 0; i < disableds.length; i++) {
+            var ele = disableds[i];
+            ele.disabled = true;
+            ele.title = "Read only";
+        }
+    };
+
+    disable();
+
+    LogiXML.Ajax.AjaxTarget().on('refreshed_dt', disable);
+});

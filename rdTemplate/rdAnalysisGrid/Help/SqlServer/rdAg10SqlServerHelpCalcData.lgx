@@ -39,7 +39,7 @@ q=quarter
 m=month
 y=day of year
 d=day
-w=weekday
+dw=weekday
 ww=week of year
 hh=hour
 n=minute
@@ -94,7 +94,8 @@ ex. ROUND(150.75, 0) = 151.00
 <StaticDataRow Name="TimeValue" Description="Returns a time value from a time string.  The function can convert dates from many different formats." Syntax="Convert(varchar(8),Convert(datetime,text),108)" Notes=""/>
 <StaticDataRow Name="Trim" Description="Removes space characters from both the left and rights sides of the text." Syntax="LTrim(RTrim(text))" Notes=""/>
 <StaticDataRow Name="Upper" Description="Converts all characters to upper case." Syntax="Upper(text)" Notes=""/>
-<StaticDataRow Name="Weekday" Description="Returns the number of the day of the week.  Possible return values are 1-7." Syntax="DatePart(wk,date)" Notes=""/>
+<StaticDataRow Name="Week" Description="Returns the week number for the year.  Possible return values are 1-52." Syntax="DatePart(ww,date)" Notes=""/>
+<StaticDataRow Name="Weekday" Description="Returns the number of the day of the week.  Possible return values are 1-7." Syntax="DatePart(dw,date)" Notes=""/>
 <StaticDataRow Name="WeekdayName" Description="Returns the name of the day corresponding to the weekday number." Syntax="DateName(dw,date)" Notes=""/>
 <StaticDataRow Name="Year" Description="Returns the number of the year of the specified date." Syntax="Year(date)" Notes=""/>
 </DataLayer>

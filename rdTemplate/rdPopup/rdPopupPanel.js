@@ -347,7 +347,7 @@ function rdPositionPopupPanel(elePopupPanel){
                     nLeft = regionViewport.right - regionPopupPanel.width - nParentOffsetLeft - 10;
                 }
                 else
-                    nLeft = nLeft - nParentOffsetLeft + 4
+                    nLeft += 4;
             }
 
             if ((nLeft + nParentOffsetLeft) < 0)
@@ -443,6 +443,7 @@ function rdPositionPopupPanel(elePopupPanel){
     if (document.getElementById('rdFreeformLayout')){
         //RD21229 - position needs to be 'fixed' for RA popup panels.
         if (document.getElementById('rdFreeformLayout').parentElement.id == 'colReportAuthorWorkingArea') {
+            elePopupPanel.style.position = 'fixed';
             nLeft = nLeft - nScrollLeft;
             nTop = nTop - nScrollTop;
         }
@@ -518,7 +519,8 @@ function rdHandlePopupKeyDown(e){
         }
         Y.one('body').detach('keydown', rdHandlePopupKeyDown); 
     } else if (e && e.keyCode == 13) {  //NGP-5997 prevent showing of Visualization Settings when rename or add new panels to dashboard
-        if (rdCurrPopupPanel.id.indexOf('ppChangeDashboard') > -1 || rdCurrPopupPanel.id.indexOf('ppEditBookmarks_actionEditBookmark') > -1) {
+        if (rdCurrPopupPanel.id.indexOf('ppChangeDashboard') > -1 || rdCurrPopupPanel.id.indexOf('ppEditBookmarks_actionEditBookmark') > -1
+            || rdCurrPopupPanel.id.indexOf('ppAddBookmarks_') > -1) { //24446, prevent submitting form and page reload after hit enter
 			e.preventDefault();
 		}
 	}

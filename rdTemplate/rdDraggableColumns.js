@@ -20,13 +20,13 @@ YUI.add('draggable-columns', function (Y) {
 
             //Only show handle when inside the cell. For touch always show.
             if (LogiXML.features['touch']) {
-                node.one('img[id$="-DragHandle"]').setStyle('visibility', 'visible');
+                LogiXML.getElementByIdEnding(node, "-DragHandle", "img").setStyle('visibility', 'visible');
             } else {
                 node.on('mouseenter', function (e) {
-                    e.currentTarget.one('img[id$="-DragHandle"]').setStyle('visibility', 'visible');
+                    LogiXML.getElementByIdEnding(e.currentTarget, "-DragHandle", "img").setStyle('visibility', 'visible');
                 });
                 node.on('mouseleave', function (e) {
-                    e.currentTarget.one('img[id$="-DragHandle"]').setStyle('visibility', 'hidden');
+                    LogiXML.getElementByIdEnding(e.currentTarget, "-DragHandle", "img").setStyle('visibility', 'hidden');
                 });
             }
 
@@ -39,11 +39,13 @@ YUI.add('draggable-columns', function (Y) {
                 stickX: true
             });
 
-            var hndNode = node.one('img[id$="-DragHandle"]');
+            var hndNode = LogiXML.getElementByIdEnding(node, "-DragHandle", "img");
             if (!LogiXML.features['touch'])
                 hndNode.setStyle('visibility', 'hidden');
             dd.addHandle('#' + LogiXML.escapeSelector(hndNode.get('id'))).plug(Y.Plugin.DDWinScroll, { vertical: false, scrollDelay: 100 });;
             hndNode.setStyle('cursor', 'e-resize');
+
+            LogiXML.fixYuiTest(hndNode);
 
             dd.on('drag:start', DraggableColumns._onDragStart);
             dd.on('drag:end', DraggableColumns._onDragEnd, node);
@@ -86,7 +88,7 @@ YUI.add('draggable-columns', function (Y) {
         }
         //#15411 Make sure to set the root class for Analysis grid to keep font/font-size
         if (node.getAttribute('class').indexOf('rdAg') !== -1) dragNode.addClass('rdAg');
-        var sourceTableNode = node.ancestor('table', false);
+        var sourceTableNode = LogiXML.getAncestorByTagName(node, 'table', false);
         if (!sourceTableNode) {
             e.halt();
             return;
@@ -126,7 +128,7 @@ YUI.add('draggable-columns', function (Y) {
         }
         var startCol = dragTable.getAttribute('colindex');
         dragNode.set('innerHTML', '');
-        var sourceTableNode = this.ancestor('table', false);
+        var sourceTableNode = LogiXML.getAncestorByTagName(this, 'table', false);
         if (!sourceTableNode) {
             e.halt();
             return;

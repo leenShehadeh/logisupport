@@ -74,7 +74,12 @@ background-color: transparent;
   display: block;
   width: 24px;
 }
-
+.cntBookmarks {
+  color: #3FB0AC;
+}
+.cntBookmarksZero {
+  color: #C0C0C0;
+}
 /* ingoGo - Table for Share Bookmarks list */
 
 table #dtBookmarkSharedWith a{

@@ -20,5 +20,32 @@
       <Element Key="2\1\4" />
       <Element Key="2\1\5" />
     </File>
+    <File Name="C:\Program Files\Apache Software Foundation\Tomcat 8.5\webapps\fontss\_Definitions\_Reports\pie.lgx">
+      <Element Key="1\1\0" />
+      <Element Key="1\1\1" />
+      <Element Key="1\1\2" />
+      <Element Key="1\1\3" />
+      <Element Key="1\1\4" />
+      <Element Key="1\2\0" />
+      <Element Key="1\3\0" />
+      <Element Key="1\4" />
+    </File>
+    <File Name="C:\Program Files\Apache Software Foundation\Tomcat 8.5\webapps\fontss\_Definitions\_Reports\newReport.lgx">
+      <Element Key="2\1" />
+      <Element Key="2\2" />
+      <Element Key="2\3" />
+      <Element Key="2\4\0" />
+      <Element Key="2\4\1" />
+      <Element Key="2\4\2" />
+      <Element Key="2\4\3" />
+    </File>
+    <File Name="C:\Program Files\Apache Software Foundation\Tomcat 8.5\webapps\fontss\_Definitions\_Reports\Default.lgx">
+      <Element Key="1\1" />
+      <Element Key="1\1\0" />
+      <Element Key="1\1\1" />
+      <Element Key="1\1\2" />
+      <Element Key="1\1\3" />
+      <Element Key="1\1\5" />
+    </File>
   </CollapsedDef>
 </Settings>

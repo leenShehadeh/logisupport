@@ -10,6 +10,7 @@ function canAccessIFrame(iframe) {
 
 function iframeResize(o, sOptionalParam) {
 
+    if (o) {
     if (o.src != "") {
         // Normally contentDocument is all you need, but IE7 doesn't have that property 
         if (o.contentWindow === null) //21313
@@ -93,6 +94,9 @@ function iframeResize(o, sOptionalParam) {
             o.width = width + 'px';
         }
 
+        var parentContainerHeight = 0;
+        var parentContainer = iframeNode.ancestor(".popupPanelContainer");
+
         // User defined Height, px or % based
         if (fixedHeight) {
             o.style.height = o.height;
@@ -112,6 +116,8 @@ function iframeResize(o, sOptionalParam) {
             //reset the iframe so that it can determine the appropriate height if the content has shrunk
             o.style.height = '1px';
             o.height = '1px';
+
+            parentContainerHeight = parentContainer ? parentContainer._node.getBoundingClientRect().height : 0;//save panel dimensions without content
 
             //now get the iframe height based on the scrollable area
             height = htmlNode.get('scrollHeight');
@@ -144,6 +150,13 @@ function iframeResize(o, sOptionalParam) {
             o.height = height + 'px';
         }
 
+        //ajust IFrame size (visualization editing popup case)
+        if (savedIframeDisplay == "inline" && parentContainer && parentContainer.getStyle("position") == "fixed") {
+            var newHeight = Math.min(height, window.innerHeight - parentContainerHeight);
+            o.style.height = newHeight + 'px';
+            o.height = newHeight + 'px';
+        }
+
         // restore original display
         iframeNode.setStyle('display', savedIframeDisplay);
 
@@ -151,6 +164,7 @@ function iframeResize(o, sOptionalParam) {
         window.scrollTo(currentWidth, currentHeight); //19377
     }
     rdCheckForAPopupPanelParent(o)  //#12818.
+    }
 
     // Does this frame have a parent that needs to be resized?
     try { // IE throws an error cross domain.RD20730

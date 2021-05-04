@@ -414,6 +414,7 @@
 
 			options.chart.width = (options.exporting && options.exporting.sourceWidth) || options.chart.width || 600;
 			options.chart.height = (options.exporting && options.exporting.sourceHeight) || options.chart.height || 400;
+			options.isChartCanvas = true;
 
 			// Load globalOptions
 			if (globalOptions) {

@@ -41,7 +41,11 @@ YUI.add('analysis-grid', function(Y) {
 			    this.rdSetPanelDisabledClass('Crosstab');
 
 			rdSetUndoRedoVisibility();
+
+			setTimeout(rdAgAddCustomAggregatesToHeaders, 10);
 		},
+
+		CURRENT_COLUMN_TOKEN: "@CurrentColumn",
 		
 		/* -----Analysis Grid Methods----- */
         btnAddAggregate_Click: function () {
@@ -623,10 +627,23 @@ YUI.add('analysis-grid', function(Y) {
 		    var rdColList = document.getElementById('rdAgAggrColumn');
 		    var sVal = rdColList.options[rdColList.selectedIndex].value;
 
-		    var dataType = this.rdAgGetColumnDataType(sVal);
+			var btnAdd = document.getElementById("rdAgBtnAddAggr");
+			var dataType;
             // for the blank default option, set datatype to a random value instead of undefined, so that all the aggregate options are repopulated.26028
-		    if ( sVal == '' )
-                dataType = 'all';
+			if (sVal == this.CURRENT_COLUMN_TOKEN) {
+				dataType = 'all';
+
+				if (!btnAdd.originalVisibility)
+					btnAdd.originalVisibility = btnAdd.style.visibility;
+
+				btnAdd.style.visibility = "hidden";
+			} else {
+				dataType = this.rdAgGetColumnDataType(sVal);
+
+				if (btnAdd.style.visibility == "hidden")
+					btnAdd.style.visibility = btnAdd.originalVisibility;
+            }
+
             rdchangeList('rdAgAggrFunction', aAggrList, aAggrListLabel, dataType, '', '');
 
             if (this.rdAgCustAggContext && this.rdAgCustAggContext != sVal) {
@@ -1343,8 +1360,8 @@ function rdfillList(rdEleId, arr, aLabel, sDataColumnType, sSelectedValue, arrGr
 
     if (rdAgIsActiveSQL()) {
         var ddlAggrCol = document.getElementById("rdAgAggrColumn");
-        if (ddlAggrCol && ddlAggrCol.selectedIndex > 0) {
-            var custAggs = rdAgGetCustomAggregates(ddlAggrCol.options[ddlAggrCol.selectedIndex].value);
+        if (ddlAggrCol && ddlAggrCol.selectedIndex >= 0) {
+			var custAggs = rdAgGetCustomAggregates(ddlAggrCol.options[ddlAggrCol.selectedIndex].value, sDataColumnType);
 
             for (var i = 0; i < custAggs.length; i++) {
                 var custAgg = custAggs[i];
@@ -1357,7 +1374,7 @@ function rdfillList(rdEleId, arr, aLabel, sDataColumnType, sSelectedValue, arrGr
 
             if (arr.indexOf("Custom") < 0) {
                 arr.push("Custom");
-                aLabel.push("(Custom)");
+                aLabel.push(rdAgCustAggShowPopupCaption());
             }
         }
     }
@@ -1512,11 +1529,83 @@ function rdAgIsActiveSQL() {
     return hdn.value == "True";
 }
 
+function rdAgCustAggClose() {
+	if (!rdAgCustAggRefresh)
+		return;
+
+	var waitCfg = null;
+
+	var hdnWaitCfg = document.getElementById("rdAgWaitPage");
+	if (hdnWaitCfg && hdnWaitCfg.value) {
+		waitCfg = JSON.parse(hdnWaitCfg.value);
+    }
+
+	var sPage = "rdPage.aspx?rdReport=" + encodeURIComponent(document.getElementById("rdAgReportId").value)
+		+ "&rdAgCommandID=" + LogiXML.getGuid()
+		+ "&rdRequestForwarding=Form"
+		+ "&rdSubmitScroll";
+
+	SubmitForm(sPage, "", false, false, false, waitCfg);
+}
+
+var rdAgCustAggRefresh = false;
+var rdAgCustAggListener = null;
+
+function rdAgCustAggHookClose(changed) {
+	var closeBtn = document.getElementById('rdPopupPanelTitle_rdAgCustAggPopup').getElementsByTagName("A")[0];
+
+	if (rdAgCustAggListener)
+		LogiXML.removeListener(rdAgCustAggListener);
+
+	rdAgCustAggListener = LogiXML.addListener(closeBtn, "click", rdAgCustAggClose);
+
+	if (changed)
+		rdAgCustAggRefresh = true;
+}
+
+function rdAgRestoreCustomAggregate(rowNumber, format) {
+	// restore the name
+	document.rdForm.rdAgCustAggName.value = document.getElementById('lblCustAggName_Row' + rowNumber).innerText;
+
+	// restore the formula
+	document.rdForm.rdAgCustAggFormula.value = document.getElementById('lblCustAggFormula_Row' + rowNumber).innerText;
+
+	// restore the format
+	document.rdForm.rdAgCustAggFormats.value = format;
+
+	// restore the data types
+	var cblDataTypes = document.getElementById('rdAgCustAggDataTypes').getElementsByTagName("INPUT");
+	var aDataTypes = document.getElementById('lblCustAggDataTypes_Row' + rowNumber).innerText.replace(/ /g, '').split(',');
+
+	var hasUnchecked = false;
+
+	var cbAll = document.getElementById("rdAgCustAggDataTypes_check_all");
+
+	for (var i = 0; i < cblDataTypes.length; i++) {
+		var cb = cblDataTypes[i];
+
+		if (cb === cbAll)
+			continue;
+
+		var sDataType = cb.value;
+
+		cb.checked = (!!sDataType && !!(aDataTypes.indexOf(sDataType) >= 0));
+
+		if (!hasUnchecked && !cb.checked)
+			hasUnchecked = true;
+	}
+
+	cbAll.checked = !hasUnchecked;
+}
+
 function rdAgShowCustomAggregatePopup(ddl) {
     if (ddl.options[ddl.selectedIndex].value == "Custom") {
         ddl.selectedIndex = 0;
         // Custom Aggregate Popup will be displayed when this returns true
         rdAgSetCustAggColumnContext();
+
+		rdAgCustAggHookClose();
+
         return true;
     }
 
@@ -1526,7 +1615,7 @@ function rdAgShowCustomAggregatePopup(ddl) {
 
 function rdAgSetCustAggColumnContext() {
     var ddlAggrCol = document.getElementById("rdAgAggrColumn");
-    if (!ddlAggrCol || ddlAggrCol.selectedIndex < 1)
+    if (!ddlAggrCol || ddlAggrCol.selectedIndex < 0)
         return;
 
     var custAggPopup = document.getElementById("rdPopupPanelTitle_rdAgCustAggPopup");
@@ -1537,24 +1626,77 @@ function rdAgSetCustAggColumnContext() {
     if (!custAggPopupCaption || !custAggPopupCaption.length)
         return;
 
+    var multiColumn = (ddlAggrCol.selectedIndex == 0);
     var optSelected = ddlAggrCol.options[ddlAggrCol.selectedIndex];
     var sSelectedColumn = optSelected.innerText;
     var sColumnID = optSelected.value;
     var sGroup = optSelected.parentElement.getAttribute("label");
+    var ddlSourceColumns = document.getElementById("rdAgCustAggDataColumns");
 
     custAggPopupCaption = custAggPopupCaption[0];
 
     // remove original ending and replace with column specific ending
-    if (!custAggPopupCaption.originalInnerText)
-        custAggPopupCaption.originalInnerText = custAggPopupCaption.innerText.replace(/from a formula\.$/, "");
+    if (!custAggPopupCaption.multiColumnTitle)
+        custAggPopupCaption.multiColumnTitle = custAggPopupCaption.innerText.trim();
 
-    custAggPopupCaption.innerText = custAggPopupCaption.originalInnerText + " for " + sSelectedColumn + ".";
+    var dtCustAggs = document.getElementById("dtCustAggs");
+
+    ShowElement(null, "divCustAggError-NoDataTypeSelected", "Hide");
+
+    var ShowDataTypes = function (sAction) {
+        var sReverseAction = sAction == "Show" ? "Hide" : "Show";
+
+        ShowElement(null, "rdAgCustAggDataTypesFieldBox", sAction);
+        ShowElement(null, "rdAgCustAggDataTypesLabel", sAction);
+        ShowElement(null, "colCustAggDataTypes-TH", sAction);
+
+        ShowElement(null, "rdAgCreateAndAdd", sReverseAction);
+        ShowElement(null, "rdAgCreateAndAddLabel", sReverseAction);
+        ShowElement(null, "colCustAggAdded-TH", sReverseAction);
+
+        for (var r = 0; r < dtCustAggs.rows.length; r++) {
+            var row = dtCustAggs.rows[r];
+            var rowNumber = row.getAttribute("row");
+            ShowElement(null, "colCustAggDataTypes_Row" + rowNumber, sAction);
+            ShowElement(null, "colCustAggAdded_Row" + rowNumber, sReverseAction);
+        }
+    };
+
+    var sCurrentColumnToken = LogiXML.AnalysisGrid.CURRENT_COLUMN_TOKEN;
+
+    if (multiColumn) {
+        // set multi-column title
+        custAggPopupCaption.innerText = custAggPopupCaption.multiColumnTitle;
+
+        // show data types options
+        ShowDataTypes("Show");
+
+        // add @CurrentColumn to column drop down
+		if (ddlSourceColumns.options[1].value != sCurrentColumnToken) {
+			sCurrentColumnToken
+			var optCurrCol = new Option(document.getElementById("rdAgCurrentColumnText").innerText, sCurrentColumnToken, false);
+
+            if (ddlSourceColumns.options.length < 2)
+                ddlSourceColumns.appendChild(optCurrCol);
+            else
+                ddlSourceColumns.insertBefore(optCurrCol, ddlSourceColumns.options[0].nextSibling);
+        }
+    } else {
+        // set column specific title
+        custAggPopupCaption.innerText = document.getElementById("rdAgOneColCustAggTitle").innerText.replace("{0}", sSelectedColumn);
+
+        // hide data type options
+        ShowDataTypes("Hide");
+
+        // remove @CurrentColumn from column drop down
+		if (ddlSourceColumns.options[1].value == sCurrentColumnToken)
+            ddlSourceColumns.remove(1);
+    }
 
     // hide custom aggregates for other columns
-    var dt = document.getElementById("dtCustAggs");
     var shown = 0;
-    for (var i = 0; i < dt.rows.length; i++) {
-        var row = dt.rows[i];
+    for (var i = 1; i < dtCustAggs.rows.length; i++) {
+        var row = dtCustAggs.rows[i];
         var cellid = row.cells[0].id;
         var idx = cellid.lastIndexOf("_Row");
         var hdnid = "rdAgCustAggColumnHidden" + cellid.substr(idx);
@@ -1572,7 +1714,7 @@ function rdAgSetCustAggColumnContext() {
         }
     }
 
-    var tableContainer = document.getElementById("divCustAggList");
+    var tableContainer = document.getElementById("rdAgDivCustAggList");
 
     if (!shown) {
         if (tableContainer.style.display != "none") {
@@ -1597,30 +1739,35 @@ function rdAgSetCustAggColumnContext() {
     if (!txtFormula.value) {
         var sFormula = null;
         var sDefaultFormula = null;
-        var i = 0;
-        for (; i < ddlColumns.options.length; i++) {
-            var opt = ddlColumns.options[i];
-            if (opt.parentElement.getAttribute("label") == sGroup && opt.text == sSelectedColumn) {
 
-                if (ddlDefaultFormulas) {
-                    var optDef;
-                    for (var j = 0; j < ddlDefaultFormulas.options.length; j++) {
-                        optDef = ddlDefaultFormulas.options[j];
+        if (multiColumn) {
+            sFormula = "COUNT(" + sCurrentColumnToken + ")";
+        } else {
+            var i = 0;
+            for (; i < ddlColumns.options.length; i++) {
+                var opt = ddlColumns.options[i];
+                if (opt.parentElement.getAttribute("label") == sGroup && opt.text == sSelectedColumn) {
 
-                        if (optDef.value == opt.value)
+                    if (ddlDefaultFormulas) {
+                        var optDef;
+                        for (var j = 0; j < ddlDefaultFormulas.options.length; j++) {
+                            optDef = ddlDefaultFormulas.options[j];
+
+                            if (optDef.value == opt.value)
+                                break;
+
+                            optDef = null;
+                        }
+
+                        if (optDef) {
+                            sDefaultFormula = optDef.text;
                             break;
-
-                        optDef = null;
+                        }
                     }
 
-                    if (optDef) {
-                        sDefaultFormula = optDef.text;
-                        break;
-                    }
+                    sFormula = "SUM(" + opt.value + ")";
+                    break;
                 }
-
-                sFormula = "SUM(" + opt.value + ")";
-                break;
             }
         }
 
@@ -1645,29 +1792,67 @@ function rdAgSetCustAggColumnContext() {
     }
 }
 
-function rdAgGetCustomAggregates(sColumnID) {
+function rdAgGetCustomAggregates(sColumnID, sDataType) {
     var dt = document.getElementById("dtCustAggs");
     var custAggs = [];
-    for (var i = 0; i < dt.rows.length; i++) {
+    var sCurrentColumnToken = LogiXML.AnalysisGrid.CURRENT_COLUMN_TOKEN;
+
+    for (var i = 1; i < dt.rows.length; i++) {
         var cellid = dt.rows[i].cells[0].id;
         var idx = cellid.lastIndexOf("_Row");
         var suffix = cellid.substr(idx);
         var hdnid = "rdAgCustAggColumnHidden" + suffix;
-        if (document.getElementById(hdnid).value == sColumnID) {
-            hdnid = "rdAgCustAggIdHidden" + suffix;
-            custAggs.push({
-                id: document.getElementById(hdnid).value,
-                name: document.getElementById("lblCustAggName" + suffix).innerText
-            });
+        var sCustCol = document.getElementById(hdnid).value;
+
+        if (sCustCol != sColumnID) {
+            // not specifically for this column, but might match on data type.
+            if (sCustCol != sCurrentColumnToken)
+                continue;
+
+            if (!sDataType)
+                continue;
+
+            var lblid = "lblCustAggDataTypes" + suffix;
+            var lbl = document.getElementById(lblid);
+            if (!lbl)
+                continue;
+
+            if (lbl.innerText.replace(/ /g, '').split(',').indexOf(sDataType) < 0)
+                continue;
+
+            // data type match
         }
-    }
+
+		hdnid = "rdAgCustAggIdHidden" + suffix;
+		custAggs.push({
+			id: document.getElementById(hdnid).value,
+			name: document.getElementById("lblCustAggName" + suffix).innerText
+		});
+	}
+
     return custAggs;
 }
 
+function rdAgCustAggCustomHeaderClick(dcIdx) {
+    var ddlDataColumn = document.getElementById('rdAgAggrColumn');
+    ddlDataColumn.selectedIndex = dcIdx;
+    LogiXML.AnalysisGrid.rdChangeAggregateOptions();
+
+    var ddlAggregate = document.getElementById('rdAgAggrFunction');
+    ddlAggregate.selectedIndex = ddlAggregate.options.length - 1;
+
+    if (rdAgShowCustomAggregatePopup(ddlAggregate))
+        ShowElement(null, 'rdAgCustAggPopup', 'Show');
+}
+
 function rdAgAddCustomAggregatesToHeaders() {
+    if (!rdAgIsActiveSQL())
+        return;
+
     var dt = document.getElementById("dtAnalysisGrid");
     if (!dt)
         return;
+
     var headers = dt.getElementsByTagName("TH");
     if (!headers || !headers.length)
         return;
@@ -1690,11 +1875,6 @@ function rdAgAddCustomAggregatesToHeaders() {
         if (!hdn || !hdn.value)
             continue;
 
-        var sColumnID = hdn.value;
-        var custAggs = rdAgGetCustomAggregates(sColumnID);
-        if (!custAggs || !custAggs.length)
-            continue;
-
         var popups = header.getElementsByClassName("rdPopupMenu");
         var aggPopup = null;
         for (var j = 0; j < popups.length; j++) {
@@ -1710,58 +1890,154 @@ function rdAgAddCustomAggregatesToHeaders() {
 
         var targetUL = aggPopup.getElementsByClassName("rdThemePopupMenu");
         if (!targetUL || !targetUL.length)
-            return;
+            continue;
 
         targetUL = targetUL[0];
 
-        for (var j = 0; j < custAggs.length; j++) {
-            var custAgg = custAggs[j];
+        var newOpt, newLink;
 
-            var newOpt, newLink;
-            var hdnidspan = document.createElement("SPAN");
+        var sColumnID = hdn.value;
+        var sDataType = LogiXML.AnalysisGrid.rdAgGetColumnDataType(sColumnID);
+        var custAggs = rdAgGetCustomAggregates(sColumnID, sDataType);
+        if (custAggs) {
+            for (var j = 0; j < custAggs.length; j++) {
+                var custAgg = custAggs[j];
 
-            var agg;
-            for (var k = 0; k < aggs.length; k++) {
-                agg = aggs[k];
+                var hdnidspan = document.createElement("SPAN");
+                var agg = null;
 
-                if (agg.func == custAgg.id)
+                for (var k = 0; k < aggs.length; k++) {
+                    agg = aggs[k];
+
+                    if (agg.func == custAgg.id && agg.dataColumn == sColumnID)
+                        break;
+
+                    agg = null;
+                }
+
+                if (!agg) {
+                    // Not aggregated currently, show the option to add it
+                    newOpt = newOpts[0].cloneNode(true);
+                    newLink = newOpt.childNodes[0];
+
+                    newLink.setAttribute("onclick", newLink.getAttribute("onclick")
+                        .replace("rdAgAggrFunction=ReplaceThis", "rdAgAggrFunction=" + encodeURIComponent(custAgg.id))
+                        .replace("rdAgAggrColumn=ReplaceThis", "rdAgAggrColumn=" + encodeURIComponent(sColumnID)));
+
+                    newLink.id = "ppo_Add" + custAgg.id + "_rdPopupOptionItem" + suffix;
+                    hdnidspan.id = "rdAgHdnAggrAdd_" + sColumnID + "_" + custAgg.id + suffix;
+
+                    newLink.childNodes[0].innerText = custAgg.name;
+                } else {
+                    // already aggregated, show the option to remove it
+                    newOpt = newOpts[1].cloneNode(true);
+                    newLink = newOpt.childNodes[0];
+
+                    newLink.setAttribute("onclick", newLink.getAttribute("onclick")
+                        .replace("rdAgAggrRemoveColumn=ReplaceThis", "rdAgAggrRemoveColumn=" + encodeURIComponent(agg.aggrID)));
+
+                    newLink.id = "ppo_Remove" + custAgg.id + "_rdPopupOptionItem" + suffix;
+                    hdnidspan.id = "rdAgHdnAggrRemove_" + sColumnID + "_" + custAgg.id + suffix;
+
+                    newLink.childNodes[0].innerText = "Remove " + custAgg.name;
+                }
+
+                newLink.appendChild(hdnidspan);
+                targetUL.appendChild(newOpt);
+            }
+        }
+
+        // REPDEV-24887 Add "(Custom)" option
+        var ddlDataColumn = document.getElementById("rdAgAggrColumn");
+
+        if (ddlDataColumn) {
+            var dcIdx = -1;
+            for (var j = 0; j < ddlDataColumn.options.length; j++) {
+                if (ddlDataColumn.options[j].value == sColumnID) {
+                    dcIdx = j;
                     break;
-
-                agg = null;
+                }
             }
 
-            if (!agg) {
-                // Not aggregated currently, show the option to add it
+            if (dcIdx >= 0) {
                 newOpt = newOpts[0].cloneNode(true);
                 newLink = newOpt.childNodes[0];
 
-                newLink.setAttribute("onclick", newLink.getAttribute("onclick")
-                    .replace("rdAgAggrFunction=ReplaceThis", "rdAgAggrFunction=" + encodeURIComponent(custAgg.id))
-                    .replace("rdAgAggrColumn=ReplaceThis", "rdAgAggrColumn=" + encodeURIComponent(sColumnID)));
+                newLink.id = LogiXML.getGuid();
 
-                newLink.id = "ppo_Add" + custAgg.id + "_rdPopupOptionItem" + suffix;
-                hdnidspan.id = "rdAgHdnAggrAdd_" + sColumnID + "_" + custAgg.id + suffix;
+                newLink.setAttribute("onclick", "rdAgCustAggCustomHeaderClick(" + dcIdx + ");");
 
-                newLink.childNodes[0].innerText = custAgg.name;
-            } else {
-                // already aggregated, show the option to remove it
-                newOpt = newOpts[1].cloneNode(true);
-                newLink = newOpt.childNodes[0];
-
-                newLink.setAttribute("onclick", newLink.getAttribute("onclick")
-                    .replace("rdAgAggrRemoveColumn=ReplaceThis", "rdAgAggrRemoveColumn=" + encodeURIComponent(agg.aggrID)));
-
-                newLink.id = "ppo_Remove" + custAgg.id + "_rdPopupOptionItem" + suffix;
-                hdnidspan.id = "rdAgHdnAggrRemove_" + sColumnID + "_" + custAgg.id + suffix;
-
-                newLink.childNodes[0].innerText = "Remove " + custAgg.name;
+                newLink.childNodes[0].innerText = rdAgCustAggShowPopupCaption();
+                targetUL.appendChild(newOpt);
             }
-
-            newLink.appendChild(hdnidspan);
-
-            targetUL.appendChild(newOpt);
         }
     }
+}
+
+function rdAgCustAggShowPopupCaption() {
+    return document.getElementById("rdAgCustAggShowPopupCaption").innerText;
+}
+
+function rdAgCustAggPreAdd(popup) {
+	var a = popup;
+	while (popup && popup.getAttribute("rdPopupPanel") != "True") {
+		popup = popup.parentNode;
+	}
+
+	if (!popup)
+		return false;
+
+	var dataTypesContainer = document.getElementById("rdAgCustAggDataTypesFieldBox");
+	if (dataTypesContainer && dataTypesContainer.style.display != "none") {
+		var hasOneChecked = false;
+
+		var cbs = dataTypesContainer.getElementsByTagName("input");
+		for (var i = 0; i < cbs.length; i++) {
+			var cb = cbs[i];
+			if (cb.type.toLowerCase() == "checkbox" && cb.checked) {
+				hasOneChecked = true;
+				break;
+			}
+		}
+
+		if (!hasOneChecked) {
+			ShowElement(null, "divCustAggError-NoDataTypeSelected", "Show");
+			a.blur();
+			return false;
+		}
+	}
+
+	var obj = {
+		id: popup.id,
+		left: popup.style.left,
+		top: popup.style.top
+	};
+
+	var callback = function () {
+		var popup = document.getElementById(this.id);
+		if (!popup)
+			return;
+
+		popup.style.left = this.left;
+		popup.style.top = this.top;
+
+		ShowElement(null, this.id, 'Show');
+
+		popup.style.left = this.left;
+		popup.style.top = this.top;
+
+		LogiXML.Ajax.AjaxTarget().detach('refreshed_' + this.id, arguments.callee);
+	}.bind(obj);
+
+	LogiXML.Ajax.AjaxTarget().on('refreshed_' + obj.id, callback);
+
+	return true;
+}
+
+function rdAgCustAggPopup_AfterRefresh() {
+	rdAgSetCustAggColumnContext();
+	ShowElement(null, "rdAgCustAggPopup", "Show");
+	rdAgCustAggHookClose(true);
 }
 
 var rdAgFormats = null;
@@ -1880,12 +2156,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
 
     custAggPopupCaption[0].style.backgroundImage = "url('" + imgCustAgg.value + "')";
-
-    rdAgAddCustomAggregatesToHeaders();
-
-    if (document.getElementById("col2Row4CustAgg").innerText.trim()) {
-        ShowElement(null, "rdAgCustAggPopup", "Show");
-    }
 
     rdAgFilterDataTypeChanged();
 });

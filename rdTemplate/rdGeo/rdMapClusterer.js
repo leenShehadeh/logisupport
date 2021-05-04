@@ -459,9 +459,9 @@ rdCluster.prototype.addMarker = function (marker) {
     var mCount;
     var mz;
 
-    if (this.isMarkerAlreadyAdded_(marker)) {
-        return false;
-    }
+    i = this.getMarkerIndex_(marker);
+    if (i >= 0)
+        return this.mergeMarkerContent_(i, marker.rdPopupContent);
 
     if (!this.center_) {
         this.center_ = marker.getPosition();
@@ -562,6 +562,34 @@ rdCluster.prototype.updateIcon_ = function () {
     this.clusterIcon_.show();
 };
 
+rdCluster.prototype.mergeMarkerContent_ = function (idx, content) {
+    if (idx < 0 || idx >= this.markers_.length || !content)
+        return;
+
+    var marker = this.markers_[idx];
+
+    if (!marker.rdPopupContentOriginal)
+        marker.rdPopupContentOriginal = marker.rdPopupContent;
+
+    if (!marker.rdExtraPopupContents)
+        marker.rdExtraPopupContents = [];
+
+    marker.rdPopupContent = marker.rdPopupContentOriginal;
+
+    var bContentAdded = false;
+    for (var i = 0; i < marker.rdExtraPopupContents.length; i++) {
+        var extra = marker.rdExtraPopupContents[i];
+        if (extra == content)
+            bContentAdded = true;
+
+        marker.rdPopupContent += marker.rdExtraPopupContents[i];
+    }
+
+    if (!bContentAdded) {
+        marker.rdExtraPopupContents.push(content);
+        marker.rdPopupContent += content;
+    }
+};
 
 /**
  * Determines if a marker has already been added to the cluster.
@@ -569,18 +597,32 @@ rdCluster.prototype.updateIcon_ = function () {
  * @param {google.maps.Marker} marker The marker to check.
  * @return {boolean} True if the marker has already been added.
  */
-rdCluster.prototype.isMarkerAlreadyAdded_ = function (marker) {
+rdCluster.prototype.getMarkerIndex_ = function (marker) {
     var i;
+
     if (this.markers_.indexOf) {
-        return this.markers_.indexOf(marker) !== -1;
-    } else {
-        for (i = 0; i < this.markers_.length; i++) {
-            if (marker === this.markers_[i]) {
-                return true;
-            }
-        }
+        i = this.markers_.indexOf(marker);
+        if (i >= 0)
+            return i;
     }
-    return false;
+
+    for (i = 0; i < this.markers_.length; i++) {
+        var test = this.markers_[i];
+
+        if (marker === test)
+            return i;
+
+        // REPDEV-23617 prevent infinite clustering
+        // Multiple markers on the same exact point should not trigger clustering
+        // With the existence of multiple DIFFERENT markers with the same lat and lng,
+        // merge the contents of the marker popup instead
+        if (marker._latlng && test._latlng
+        && marker._latlng.lat == test._latlng.lat
+        && marker._latlng.lng == test._latlng.lng)
+            return i;
+    }
+
+    return -1;
 };
 
 
