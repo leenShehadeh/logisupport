@@ -151,6 +151,61 @@
 				</Action>
 			</Button>
 		</Remark>
+		<ChartCanvas>
+			<Series
+				ChartLabelColumn="REGLABEL"
+				ChartYDataColumn="REGCOUNT"
+				Colors="#6abc45,#f8a01b,#d34e27,#2e368e"
+				DonutHoleSize="60"
+				HoverBrightness="0"
+				LabelLocation="Legend"
+				PieRadius="80"
+				Type="Pie"
+				>
+				<DataLayer
+					Type="Static"
+					>
+					<StaticDataRow
+						REGCOUNT="2"
+						REGLABEL="Live"
+					/>
+					<StaticDataRow
+						REGCOUNT="1"
+						REGLABEL="On Demand"
+					/>
+					<StaticDataRow
+						REGCOUNT="5"
+						REGLABEL="None"
+					/>
+					<StaticDataRow
+						REGCOUNT="4"
+						REGLABEL="Both"
+					/>
+				</DataLayer>
+			</Series>
+			<ChartCanvasLegend
+				AlignmentHorizontal="Right"
+				AlignmentVertical="Middle"
+				BackgroundColorTransparency="15"
+				BorderColorTransparency="15"
+				InsidePlotArea="False"
+				LegendOrientation="Vertical"
+				Width="180"
+				>
+				<LegendLabelStyle
+					FontColor="#666666"
+					FontFamily="Helvetica, &apos;Arial&apos;, &apos;Segoe UI&apos;, &apos;Avenir Next&apos;, &apos;Avenir&apos;, &apos;Helvetica Neue&apos;, &apos;sans-serif&apos;"
+					FontWeight="Normal"
+				/>
+			</ChartCanvasLegend>
+			<Remark>
+				<ChartXAxis>
+					<AxisLabelStyle
+						FontAngle="2"
+					/>
+				</ChartXAxis>
+			</Remark>
+		</ChartCanvas>
 		<Label
 			Caption="Export To PDF"
 			HtmlTag="Label"

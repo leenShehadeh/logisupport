@@ -10,7 +10,7 @@
 	</Remark>
 	<Application
 		Caption="logisupport"
-		DefaultReport="newReport"
+		DefaultReport="Default"
 	/>
 	<Remark>
 		<Path
