@@ -633,7 +633,7 @@ extend(Chart.prototype, {
 			chart.exportSVGElements = [];
 		}
 
-		if (btnOptions.enabled === false) {
+		if (btnOptions.enabled === false || !chart.renderer) {
 			return;
 		}
 
@@ -693,7 +693,8 @@ extend(Chart.prototype, {
 
 		button = renderer.button(btnOptions.text, 0, 0, callback, attr, hover, select)
 			.attr({			    
-				'stroke-linecap': 'round'
+				'stroke-linecap': 'round',
+				'pointer-events': 'auto'
 			});
 		var titleNode = button.element.getElementsByTagName('title')[0];
 		if (!titleNode) {

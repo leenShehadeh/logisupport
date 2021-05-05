@@ -3,15 +3,15 @@
 	ID="rdTemplate.rdMetadata.TableEdit"
 	SecurityReportRightID="@Constant.MetadataAdminSecurityRightIDs~"
 	>
-  <DefinitionModifierFile
-    DefinitionModifierFile="@Constant.rdMetadataDmfPath~@Request.rdReport~.xml"
-    ID="CustomDefinitionModifierFile"
-  />
+	<DefinitionModifierFile
+		DefinitionModifierFile="@Constant.rdMetadataDmfPath~@Request.rdReport~.xml"
+		ID="CustomDefinitionModifierFile"
+	/>
 	<StyleSheet
 		StyleSheet="rdTemplate/rdMetadata/rdMetadata.css"
 	/>
-  <StyleSheet
-    StyleSheet="@Session.rdMetadataStyleSheet~"
+	<StyleSheet
+		StyleSheet="@Session.rdMetadataStyleSheet~"
 	/>
 	<SetSessionVariables
 		ID="SetUndoRedoSessionVars"
@@ -25,8 +25,41 @@
 	/>
 	<LocalData>
 		<DataLayer
+			EnableSettings="True"
+			ID="dlMetadataElement"
 			Type="XMLFile"
-			XMLFile="@Function.AppPhysicalPath~/_Metadata/@Request.MetadataID~.lgx"
+			XMLFile="@Function.AppPhysicalPath~/_Definitions/_Settings.lgx"
+			XPath="Setting/Connections/Connection[@ID=&apos;@Request.ConnectionID~&apos;]/Metadata[@ID=&apos;@Request.MetadataID~&apos;]"
+			>
+			<SwitchColumn
+				DataColumn="MetadataUrl"
+				DataType="Text"
+				ID="ReadOnly"
+				>
+				<SwitchIf
+					NewValue="False"
+				/>
+				<SwitchElse
+					NewValue="True"
+				/>
+			</SwitchColumn>
+			<SwitchColumn
+				DataColumn="MetadataUrl"
+				ID="MetadataUrl"
+				>
+				<SwitchIf
+					NewValue="@Function.AppPhysicalPath~/_Metadata/@Request.MetadataID~.lgx"
+				/>
+				<SwitchElse
+					NewValue="@Data.MetadataUrl~"
+				/>
+			</SwitchColumn>
+		</DataLayer>
+	</LocalData>
+	<LocalData>
+		<DataLayer
+			Type="XMLFile"
+			XMLFile="@Local.MetadataUrl~"
 			>
 			<Flattener
 				DataRowElementNames="Table"
@@ -119,61 +152,100 @@
 			Format="Preserve Line Feeds"
 			ID="lblInstruct2"
 		/>
-		<InputGrid
-			Class="ThemeAlignTop"
+		<Division
+			Condition="&apos;@Local.ReadOnly~&apos; == &apos;True&apos;"
+			ID="divInputGridReadOnly"
 			>
-			<InputText
-				Caption="Table Name"
-				CaptionClass="ThemeHeader ThemeNoWrap"
-				DefaultValue="@Request.TableName~"
-				ID="inputTableName"
+			<Rows>
+				<Row>
+					<Column>
+						<Label
+							Caption="Table Name"
+							Class="ThemeHeader ThemeNoWrap"
+						/>
+					</Column>
+					<Column>
+						<Label
+							Caption="@Request.TableName~"
+						/>
+					</Column>
+				</Row>
+				<Row>
+					<Column>
+						<Label
+							Caption="SQL Query"
+							Class="ThemeHeader ThemeNoWrap"
+						/>
+					</Column>
+					<Column>
+						<Label
+							Caption="@Local.rdMetadataSqlSource~"
+							Format="Preserve Line Feeds"
+						/>
+					</Column>
+				</Row>
+			</Rows>
+		</Division>
+		<Division
+			Condition="&apos;@Local.ReadOnly~&apos; == &apos;False&apos;"
+			ID="divInputGrid"
+			>
+			<InputGrid
+				Class="ThemeAlignTop"
 				>
-				<Validation
-					ErrorMsg="Table Name cannot be blank."
-					Type="Required"
-				/>
-				<Validation
-					ErrorMsg="Table Name cannot have special characters."
-					JavascriptFunction="rdMetadataValidateID(document.getElementById(&apos;inputTableName&apos;))"
-					Type="Javascript"
-				/>
-				<EventHandler
-					DhtmlEvent="onchange"
+				<InputText
+					Caption="Table Name"
+					CaptionClass="ThemeHeader ThemeNoWrap"
+					DefaultValue="@Request.TableName~"
+					ID="inputTableName"
 					>
-					<Action
-						ID="jsMetadataUpdate"
-						Javascript="rdMetadataSetTableName(this)"
-						Type="Javascript"
-						Validate="True"
+					<Validation
+						ErrorMsg="Table Name cannot be blank."
+						Type="Required"
 					/>
-				</EventHandler>
-			</InputText>
-			<InputTextArea
-				Caption="SQL Query"
-				CaptionClass="ThemeHeader ThemeAlignTop ThemeNoWrap"
-				DefaultValue="@Local.rdMetadataSqlSource~"
-				ID="inputSqlSource"
-				InputColumns="150"
-				InputRows="20"
-				>
-				<Validation
-					ErrorMsg="SQL Query cannot be blank."
-					Type="Required"
-				/>
-				<EventHandler
-					DhtmlEvent="onchange"
+					<Validation
+						ErrorMsg="Table Name cannot have special characters."
+						JavascriptFunction="rdMetadataValidateID(document.getElementById(&apos;inputTableName&apos;))"
+						Type="Javascript"
+					/>
+					<EventHandler
+						DhtmlEvent="onchange"
+						>
+						<Action
+							ID="jsMetadataUpdate"
+							Javascript="rdMetadataSetTableName(this)"
+							Type="Javascript"
+							Validate="True"
+						/>
+					</EventHandler>
+				</InputText>
+				<InputTextArea
+					Caption="SQL Query"
+					CaptionClass="ThemeHeader ThemeAlignTop ThemeNoWrap"
+					DefaultValue="@Local.rdMetadataSqlSource~"
+					ID="inputSqlSource"
+					InputColumns="150"
+					InputRows="20"
 					>
-					<Action
-						ID="jsMetadataUpdate"
-						Javascript="rdMetadataSetBackButtonRefresh(&quot;Tables&quot;);
+					<Validation
+						ErrorMsg="SQL Query cannot be blank."
+						Type="Required"
+					/>
+					<EventHandler
+						DhtmlEvent="onchange"
+						>
+						<Action
+							ID="jsMetadataUpdate"
+							Javascript="rdMetadataSetBackButtonRefresh(&quot;Tables&quot;);
 
 rdMetadataSetValue(this,&apos;TableSetValue&apos;,&apos;MetadataID=@Request!Url.MetadataID~&amp;TableName=&apos; + document.getElementById(&apos;hiddenTableName&apos;).value + &apos;&amp;Attribute=SqlSource&apos;, false)"
-						Type="Javascript"
-						Validate="True"
-					/>
-				</EventHandler>
-			</InputTextArea>
-		</InputGrid>
+							Type="Javascript"
+							Validate="True"
+						/>
+					</EventHandler>
+				</InputTextArea>
+			</InputGrid>
+		</Division>
 		<InputHidden
 			DefaultValue="@Request.TableName~"
 			ID="hiddenTableName"
@@ -189,7 +261,11 @@ rdMetadataSetValue(this,&apos;TableSetValue&apos;,&apos;MetadataID=@Request!Url.
 			DefinitionFile="rdTemplate/rdMetadata/TestParameters.lgx"
 			ID="includeSharedSQLSourceTestParameters"
 			SharedElementID="SQLSourceTestParameters"
-		/>
+			>
+			<SharedElementParams
+				MetadataUrl="@Local.MetadataUrl~"
+			/>
+		</IncludeSharedElement>
 		<LineBreak
 			LineCount="2"
 		/>
@@ -198,55 +274,98 @@ rdMetadataSetValue(this,&apos;TableSetValue&apos;,&apos;MetadataID=@Request!Url.
 				<Column
 					Class="ThemeAlignTop"
 					>
-					<Label
-						Caption="Actions:"
-						Class="ThemeHeader"
-						ID="lblActions"
-					/>
-					<Spaces
-						Size="5"
-					/>
-					<Label
-						Caption="Test SQL Query"
-						Class="ThemeLinkButton"
-						ID="lblTest"
+					<Division
+						Condition="&apos;@Local.ReadOnly~&apos; == &apos;True&apos;"
+						ID="divActionsReadOnly"
 						>
-						<Action
-							ID="actTest"
-							Javascript="rdMetadataTestCustomSql();return false;"
-							Type="Javascript"
+						<Label
+							Caption="Actions:"
+							Class="ThemeHeader"
+							ID="lblActions"
+						/>
+						<Spaces
+							Size="5"
+						/>
+						<Label
+							Caption="Test SQL Query"
+							Class="ThemeLinkButton"
+							ID="lblTest"
 							>
-							<WaitPage/>
-						</Action>
-					</Label>
-					<Spaces/>
-					<Label
-						Caption="Get Columns from the Data Source"
-						Class="ThemeLinkButton"
-						ID="lblGetColumns"
+							<Action
+								ID="actTest"
+								Javascript="rdMetadataTestCustomSql();return false;"
+								Type="Javascript"
+								>
+								<WaitPage/>
+							</Action>
+						</Label>
+						<Spaces/>
+						<Label
+							Caption="Done"
+							Class="ThemeLinkButton"
+							ID="lblDone"
+							>
+							<Action
+								Javascript="if(window.location.href.indexOf(&apos;rdForWizard=True&apos;) &gt; -1){ if(window.external){ try { return window.external.CloseWizardWindow(); } catch(err) {return true;} } } else { history.go(-1);return false; }"
+								Type="Javascript"
+							/>
+						</Label>
+					</Division>
+					<Division
+						Condition="&apos;@Local.ReadOnly~&apos; == &apos;False&apos;"
+						ID="divActions"
 						>
-						<Action
-							ConfirmMessage="Click OK to load or refresh the columns for this Custom Table."
-							ID="jsMetadataUpdate"
-							Javascript="rdMetadataGetColumnsFromSource(&apos;pupLocalResponse&apos;,true);return false;"
-							Type="Javascript"
-							Validate="True"
+						<Label
+							Caption="Actions:"
+							Class="ThemeHeader"
+							ID="lblActions"
 						/>
-					</Label>
-					<Spaces/>
-					<Label
-						Caption="Done"
-						Class="ThemeLinkButton"
-						ID="lblDone"
-						>
-						<Action
-							Javascript="if(window.location.href.indexOf('rdForWizard=True') > -1){ if(window.external){ try { return window.external.CloseWizardWindow(); } catch(err) {return true;} } } else { history.go(-1);return false; }"
-							Type="Javascript"
+						<Spaces
+							Size="5"
 						/>
-					</Label>
+						<Label
+							Caption="Test SQL Query"
+							Class="ThemeLinkButton"
+							ID="lblTest"
+							>
+							<Action
+								ID="actTest"
+								Javascript="rdMetadataTestCustomSql();return false;"
+								Type="Javascript"
+								>
+								<WaitPage/>
+							</Action>
+						</Label>
+						<Spaces/>
+						<Label
+							Caption="Get Columns from the Data Source"
+							Class="ThemeLinkButton"
+							ID="lblGetColumns"
+							>
+							<Action
+								ConfirmMessage="Click OK to load or refresh the columns for this Custom Table."
+								ID="jsMetadataUpdate"
+								Javascript="rdMetadataGetColumnsFromSource(&apos;pupLocalResponse&apos;,true);return false;"
+								Type="Javascript"
+								Validate="True"
+							/>
+						</Label>
+						<Spaces/>
+						<Label
+							Caption="Done"
+							Class="ThemeLinkButton"
+							ID="lblDone"
+							>
+							<Action
+								Javascript="if(window.location.href.indexOf(&apos;rdForWizard=True&apos;) &gt; -1){ if(window.external){ try { return window.external.CloseWizardWindow(); } catch(err) {return true;} } } else { history.go(-1);return false; }"
+								Type="Javascript"
+							/>
+						</Label>
+					</Division>
 				</Column>
 				<Column>
 					<IncludeSharedElement
+						Condition="&apos;@Local.ReadOnly~&apos; == &apos;False&apos;"
 						DefinitionFile="rdTemplate/rdMetadata/UndoRedo"
 						SharedElementID="UndoRedo"
 					/>

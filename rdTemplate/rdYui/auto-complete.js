@@ -65,7 +65,7 @@ YUI.add('rdAutoComplete', function (Y) {
 					    }
 				    }
 				},
-
+                
 				resultFormatter: function (query, results) {
 				    return Y.Array.map(results, function (result) {
 				        var sText = result.raw
@@ -78,8 +78,45 @@ YUI.add('rdAutoComplete', function (Y) {
                         }
 				        return '<span ' + sTitle + '">' + sText + '</span>';
 				    });
-				},
-				
+                },
+                //23727 (xNumber)
+                resultListLocator: function (response) {
+                    if (LogiXML && LogiXML.rdInputTextDelimiter) {
+                        var nFetchMin = inputNode._node.getAttribute("data-fetch-minLength");
+                        if ((!nFetchMin) || nFetchMin <= 0) {
+                            return response;
+                        }
+
+                        var input = inputNode._node;
+                        var containerID = input.getAttribute("data-delimiter-container-id");
+                        if (containerID) {
+                            var container = document.getElementById(containerID);
+                            if (container) {
+                                var editor = container.getElementsByClassName(LogiXML.rdInputTextDelimiter.EDITOR_CLASS_NAME)[0];
+                                LogiXML.rdInputTextDelimiter.sync(editor, true);
+                            }
+                        }
+                        var text = inputNode.get("value");
+                        var delimiter = inputNode._node.getAttribute("data-delimiter");
+                        var qualifier = inputNode._node.getAttribute("data-qualifier");
+                        var escape = inputNode._node.getAttribute("data-escape");
+
+                        if (!delimiter)
+                            delimiter = ",";
+
+                        var entry;
+                        if (!qualifier) {
+                            var  selected = LogiXML.rdInputTextDelimiter.getEntries(text, delimiter, qualifier, escape, true);
+                            entry = selected.entry;
+                        } else {
+                            var selected = text.split(/\s*,\s*/);
+                            entry = selected[selected.length - 1];
+                        }
+                        return entry.length >= nFetchMin ? response : [];
+                    } else {
+                        return response;
+                    }
+                },
                 resultFilters: ['startsWith', function (query, results) {
                     var selected;
 
@@ -131,8 +168,8 @@ YUI.add('rdAutoComplete', function (Y) {
 					return Y.Array.filter(results, function (result) {
 						return !selected.hasOwnProperty(result.text);
 					  });
-					}]									
-			});
+					}]	
+            });
 
 			
 			if (sOnChange != "") {
@@ -203,14 +240,15 @@ YUI.add('rdAutoComplete', function (Y) {
 
 			this.rdEventOnAutoComplete = this.configNode.getAttribute('data-event');			
         },
-        
 
+        
         destructor: function () {
             var configNode = this.configNode;
             this._clearHandlers();
             configNode.setData(TRIGGER, null);
         },
 
+        
         _clearHandlers: function () {
             var self = this;
             Y.each(this._handlers, function (item) {
@@ -224,9 +262,7 @@ YUI.add('rdAutoComplete', function (Y) {
                     item = null;
                 }
             });
-        }
-
-
+        },
     }, {
         // Static Methods and properties
         NAME: 'rdAutoComplete',

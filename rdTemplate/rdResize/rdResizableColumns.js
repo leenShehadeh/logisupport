@@ -106,58 +106,65 @@
         if (!iCellSpacing || isNaN(iCellSpacing))
             iCellSpacing = 0;
 
+        var i = -1;
+        var handlesAreVisible = LogiXML.features["touch"];
         //19277
         tableNode.all('TH').each(function (thNode) {
+            i++;
+
             thDOM = thNode.getDOMNode();
 
             ResizableColumns._enforceMinimumWidth(thNode);
 
-            var moreWidth = iCellSpacing; // add the space between this cell and the right edge of the table, or the right edge of the next cell
+            if (!handlesAreVisible) {
+                var moreWidth = iCellSpacing; // add the space between this cell and the right edge of the table, or the right edge of the next cell
 
-            if (tableWidth == 0)
-                moreWidth += iCellSpacing; // first cell, add the space between this cell and the left edge of the table
+                if (tableWidth == 0)
+                    moreWidth += iCellSpacing; // first cell, add the space between this cell and the left edge of the table
 
-            var compStyle = window.getComputedStyle(thDOM, null);
-            if (compStyle) {
-                if (compStyle.getPropertyValue("box-sizing") != "border-box") {
-                    // border and padding are not included in width
+                var compStyle = window.getComputedStyle(thDOM, null);
+                var border = 0;
+                if (compStyle) {
+                    // border is not included in clientWidth
                     var iAdd = parseInt(compStyle.getPropertyValue('border-left-width'), 10);
                     if (iAdd && !isNaN(iAdd))
-                        moreWidth += iAdd;
-
-                    iAdd = parseInt(compStyle.getPropertyValue('padding-left'), 10);
-                    if (iAdd && !isNaN(iAdd))
-                        moreWidth += iAdd;
-
-                    iAdd = parseInt(compStyle.getPropertyValue('padding-right'), 10);
-                    if (iAdd && !isNaN(iAdd))
-                        moreWidth += iAdd;
+                        border += iAdd;
 
                     iAdd = parseInt(compStyle.getPropertyValue('border-right-width'), 10);
                     if (iAdd && !isNaN(iAdd))
-                        moreWidth += iAdd;
+                        border += iAdd;
                 }
-            }
 
-            //20275 22405 22495
-            var draggable = thNode.hasClass('yui3-dd-draggable');
-            if (!draggable && !(Y.LogiXML && (Y.LogiXML.ReportAuthor || Y.LogiXML.Dashboard)))
-                draggable = (thDOM.getElementsByClassName("yui3-dd-draggable").length > 0);
+                //20275 22405 22495
+                var draggable = thNode.hasClass('yui3-dd-draggable');
+                if (!draggable && !(Y.LogiXML && (Y.LogiXML.ReportAuthor || Y.LogiXML.Dashboard)))
+                    draggable = (thDOM.getElementsByClassName("yui3-dd-draggable").length > 0);
 
-            if (draggable && !thNode.ancestor().hasClass('rdAgHeaderRow') && thDOM.getAttribute("id").indexOf("-TH") > -1) {
-                var colWidth = parseInt(thDOM.style.width, 10);
-                if (typeof colWidth === 'number' && !isNaN(colWidth)) { //21231
-                    tableWidth += colWidth + moreWidth;
-                    //19409
-                    if (LogiXML.features['touch'])
-                        tableWidth += 12;
+                if (draggable && !thNode.ancestor().hasClass('rdAgHeaderRow') && thDOM.getAttribute("id").indexOf("-TH") > -1) {
+                    var colWidth = thDOM.clientWidth; // includes padding
+
+                    // include border
+                    colWidth += border;
+
+                    // include right cell space
+                    colWidth += iCellSpacing
+
+                    // include left cell space for first column only
+                    if (i == 0)
+                        colWidth += iCellSpacing;
+
+                    tableWidth += colWidth;
                 }
             }
         });
 
         //Set table style to fixed so that table will leave viewport if necessary
         if (typeof tableWidth === 'number' && !isNaN(tableWidth) && tableWidth != 0) { //21231
-            tableDOM.style.width = tableWidth + 'px';
+            if (handlesAreVisible)
+                tableDOM.style.width = tableWidth - 40 + 'px';
+            else
+                tableDOM.style.width = '1px'; // so the table width won't compete with the specified column widths when dragging.
+
             //23183 24337
             tableDOM.style.tableLayout = "fixed";
         }
@@ -248,39 +255,48 @@
         // subtract padding
         var thDOM = thNode.getDOMNode();
         var compStyle = window.getComputedStyle(thDOM, null);
+        var padding = 0;
+        var border = 0;
+        var boxSizing = ""; // If you set box-sizing: border-box; on an element, padding and border are included in the width and height:
+
         if (compStyle) {
+            boxSizing = compStyle.getPropertyValue("box-sizing");
+
             var iPadding = parseInt(compStyle.getPropertyValue("border-left-width"), 10);
             if (iPadding && !isNaN(iPadding))
-                visibleWidth -= iPadding;
+                border += iPadding;
 
             iPadding = parseInt(compStyle.getPropertyValue("border-right-width"), 10);
             if (iPadding && !isNaN(iPadding))
-                visibleWidth -= iPadding;
+                border += iPadding;
 
             iPadding = parseInt(compStyle.getPropertyValue("padding-left"), 10);
             if (iPadding && !isNaN(iPadding))
-                visibleWidth -= iPadding;
+                padding += iPadding;
 
             iPadding = parseInt(compStyle.getPropertyValue("padding-right"), 10);
             if (iPadding && !isNaN(iPadding))
-                visibleWidth -= iPadding;
+                padding += iPadding;
         }
 
-        var hiddenWidth;
+        visibleWidth -= padding;
+
+        var hiddenWidth = 0;
 
         if (innerTable) {
             var tableScroll = innerTable.get('scrollWidth'); // width needed
-            if (tableScroll >= 1) {
-                hiddenWidth = (tableScroll - visibleWidth); // width of hidden portion
-            }
-            
-            if (hiddenWidth <= 0)
-                return; // nothing hidden
-        } else
-            hiddenWidth = 0;
+            if (tableScroll > visibleWidth)
+                hiddenWidth = tableScroll - visibleWidth; // width of hidden portion
+        }
 
-        var curWidth = parseInt(thDOM.style.width, 10);
-        var minWidth = curWidth + hiddenWidth;
+        var minWidth;
+        
+        if (boxSizing == "border-box") {
+            // including padding and border in width specification
+            minWidth = visibleWidth + hiddenWidth + padding + border;
+        } else {
+            minWidth = visibleWidth + hiddenWidth;
+        }
 
         thNode.setStyle('width', minWidth + "px");
     };

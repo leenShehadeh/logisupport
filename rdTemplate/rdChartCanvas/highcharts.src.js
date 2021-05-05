@@ -1735,7 +1735,8 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
             itemStyle: {
                 color: '#333333',
                 fontSize: '12px',
-                fontWeight: 'normal'
+                fontWeight: 'normal',
+                textOverflow: 'ellipsis'
             },
             itemHoverStyle: {
                 //cursor: 'pointer', removed as of #601
@@ -2417,6 +2418,9 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
                     hyphenate = function (a, b) { return '-' + b.toLowerCase(); };
                     /*jslint unparam: false*/
                     for (n in styles) {
+                        if (elem.nodeName.toLowerCase() === 'text' && n === 'width') {
+                            continue;
+                        }
                         serializedCss += n.replace(/([A-Z])/g, hyphenate) + ':' + styles[n] + ';';
                     }
                     attr(elem, 'style', serializedCss); // #1881
@@ -3241,6 +3245,120 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
         draw: function () { },
 
         /**
+             * Truncate the text node contents to a given length. Used when the css
+             * width is set. If the `textOverflow` is `ellipsis`, the text is truncated
+             * character by character to the given length. If not, the text is
+             * word-wrapped line by line.
+             *
+             * @private
+             * @function Highcharts.SVGRenderer#truncate
+             *
+             * @param {Highcharts.SVGElement} wrapper
+             *
+             * @param {Highcharts.HTMLDOMElement} tspan
+             *
+             * @param {string|undefined} text
+             *
+             * @param {Array<string>|undefined} words
+             *
+             * @param {number} startAt
+             *
+             * @param {number} width
+             *
+             * @param {Function} getString
+             *
+             * @return {boolean}
+             *         True if tspan is too long.
+             */
+        truncate: function (wrapper, tspan, text, words, startAt, width, getString) {
+            var renderer = this, rotation = wrapper.rotation, str, // Word wrap can not be truncated to shorter than one word, ellipsis
+                // text can be completely blank.
+                minIndex = words ? 1 : 0, maxIndex = (text || words).length, currentIndex = maxIndex, // Cache the lengths to avoid checking the same twice
+                lengths = [], updateTSpan = function (s) {
+                    if (tspan.firstChild) {
+                        tspan.removeChild(tspan.firstChild);
+                    }
+                    if (s) {
+                        tspan.appendChild(doc.createTextNode(s));
+                    }
+                }, getSubStringLength = function (charEnd, concatenatedEnd) {
+                    // charEnd is useed when finding the character-by-character
+                    // break for ellipsis, concatenatedEnd is used for word-by-word
+                    // break for word wrapping.
+                    var end = concatenatedEnd || charEnd;
+                    if (typeof lengths[end] === 'undefined') {
+                        // Modern browsers
+                        if (tspan.getSubStringLength) {
+                            // Fails with DOM exception on unit-tests/legend/members
+                            // of unknown reason. Desired width is 0, text content
+                            // is "5" and end is 1.
+                            try {
+                                lengths[end] = startAt + tspan.getSubStringLength(0, words ? end + 1 : end);
+                            } catch (e) {
+                                '';
+                            }
+                            // Legacy
+                        } else if (renderer.getSpanWidth) {
+                            // #9058 jsdom
+                            updateTSpan(getString(text || words, charEnd));
+                            lengths[end] = startAt + renderer.getSpanWidth(wrapper, tspan);
+                        }
+                    }
+                    return lengths[end];
+                }, actualWidth, truncated;
+            wrapper.rotation = 0;
+            // discard rotation when computing box
+            actualWidth = getSubStringLength(tspan.textContent.length);
+            truncated = startAt + actualWidth > width;
+            if (truncated) {
+                // Do a binary search for the index where to truncate the text
+                while (minIndex <= maxIndex) {
+                    currentIndex = Math.ceil((minIndex + maxIndex) / 2);
+                    // When checking words for word-wrap, we need to build the
+                    // string and measure the subStringLength at the concatenated
+                    // word length.
+                    if (words) {
+                        str = getString(words, currentIndex);
+                    }
+                    actualWidth = getSubStringLength(currentIndex, str && str.length - 1);
+                    if (minIndex === maxIndex) {
+                        // Complete
+                        minIndex = maxIndex + 1;
+                    } else if (actualWidth > width) {
+                        // Too large. Set max index to current.
+                        maxIndex = currentIndex - 1;
+                    } else {
+                        // Within width. Set min index to current.
+                        minIndex = currentIndex;
+                    }
+                }
+                // If max index was 0 it means the shortest possible text was also
+                // too large. For ellipsis that means only the ellipsis, while for
+                // word wrap it means the whole first word.
+                if (maxIndex === 0) {
+                    // Remove ellipsis
+                    updateTSpan('');
+                    // If the new text length is one less than the original, we don't
+                    // need the ellipsis
+                } else if (!(text && maxIndex === text.length - 1)) {
+                    updateTSpan(str || getString(text || words, currentIndex));
+                }
+            }
+            // When doing line wrapping, prepare for the next line by removing the
+            // items from this line.
+            if (words) {
+                words.splice(0, currentIndex);
+            }
+            wrapper.actualWidth = actualWidth;
+            wrapper.rotation = rotation;
+            if (wrapper.bBox) {
+                wrapper.bBox = null;
+            }
+            // Apply rotation again.
+            return truncated;
+        },
+
+        /**
          * Parse a simple HTML string into SVG tspans
          *
          * @param {Object} textNode The parent text SVG node
@@ -3279,7 +3397,7 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
 
             // Skip tspans, add text directly to text node. The forceTSpan is a hook 
             // used in text outline hack.
-            if (!hasMarkup && !textStroke && textStr.indexOf(' ') === -1) {
+            if (!hasMarkup && !textStroke && textStr.indexOf(' ') === -1 && !(textStyles && textStyles.textOverflow === 'ellipsis')) {
                 textNode.appendChild(doc.createTextNode(textStr));
                 return;
 
@@ -3395,7 +3513,16 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
                                         softLineNo = 1,
                                         bBox;
 
-                                    while (hasWhiteSpace && (words.length || rest.length)) {
+                                    if (textStyles && textStyles.textOverflow === 'ellipsis') {
+                                        truncated = renderer.truncate(wrapper, tspan, span, void 0, 0, // Target width
+                                            Math.max(0, // Substract the font face to make
+                                                // room for the ellipsis itself
+                                                width - parseInt((textStyles && textStyles.fontSize) || 12, 10)), // Build the text to test for
+                                            function (text, currentIndex) {
+                                                return text.substring(0, currentIndex) + '\u2026';
+                                            });
+                                    }
+                                    else while (hasWhiteSpace && (words.length || rest.length)) {
                                         delete wrapper.bBox; // delete cache
                                         bBox = wrapper.getBBox();
                                         actualWidth = bBox.width;
@@ -7869,10 +7996,10 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
 
             // Prevent pinch zooming out of range. Check for defined is for #1946. #1734.
             if (!this.allowZoomOutside) {
-                if (defined(dataMin) && newMin <= mathMin(dataMin, pick(options.min, dataMin))) {
+                if (defined(dataMin) && newMin < mathMin(dataMin, pick(options.min, dataMin))) {
                     newMin = UNDEFINED;
                 }
-                if (defined(dataMax) && newMax >= mathMax(dataMax, pick(options.max, dataMax))) {
+                if (defined(dataMax) && newMax > mathMax(dataMax, pick(options.max, dataMax))) {
                     newMax = UNDEFINED;
                 }
             }
@@ -8029,18 +8156,18 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
             axis.staggerLines = axis.horiz && labelOptions.staggerLines;
 
             // Create the axisGroup and gridGroup elements on first iteration
+            //REPDEV-22964 : scrollbar for charts. Grabbed from HC 8.1.0
             if (defined(chart.renderer)) {
                 if (!axis.axisGroup) {
-                    axis.gridGroup = renderer.g('grid')
-                        .attr({ zIndex: options.gridZIndex || 1 })
-                        .add();
-                    axis.axisGroup = renderer.g('axis')
-                        .attr({ zIndex: options.zIndex || 2 })
-                        .add();
-                    axis.labelGroup = renderer.g('axis-labels')
-                        .attr({ zIndex: labelOptions.zIndex || 7 })
-                        .addClass(PREFIX + axis.coll.toLowerCase() + '-labels')
-                        .add();
+                    axis.gridGroup = renderer.g('grid').attr({
+                        zIndex: options.gridZIndex || 1
+                    }).addClass('highcharts-' + this.coll.toLowerCase() + '-grid ').add();
+                    axis.axisGroup = renderer.g('axis').attr({
+                        zIndex: options.zIndex || 2
+                    }).addClass('highcharts-' + this.coll.toLowerCase() + ' ').add();
+                    axis.labelGroup = renderer.g('axis-labels').attr({
+                        zIndex: labelOptions.zIndex || 7
+                    }).addClass('highcharts-' + axis.coll.toLowerCase() + '-labels ').add();
                 }
             }
 
@@ -9630,7 +9757,7 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
 
             // Get mouse position
             if (!chartPosition) {
-                this.chartPosition = chartPosition = offset(this.chart.container);
+                this.chartPosition = chartPosition = offset(this.chart.fixedRenderer ? this.chart.fixedDiv : this.chart.container);
             }
 
             // chartX and chartY
@@ -10796,6 +10923,24 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
         },
 
         /**
+             * Set the legend item text.
+             *
+             * @function Highcharts.Legend#setText
+             *
+             * @param {Highcharts.Point|Highcharts.Series} item
+             *        The item for which to update the text in the legend.
+             *
+             * @return {void}
+             */
+        setText: function (item) {
+            var options = this.options;
+            item.legendItem.attr({
+                text: options.labelFormat ?
+                    H.format(options.labelFormat, item, this.chart) :
+                    options.labelFormatter.call(item)
+            });
+        },
+        /**
          * Render a single specific legend item
          * @param {Object} item A series or point
          */
@@ -10824,6 +10969,12 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
                 seriesOptions = series.options,
                 showCheckbox = legend.createCheckboxForItem && seriesOptions && seriesOptions.showCheckbox,
                 useHTML = options.useHTML;
+
+            //<grabbed from fresh highcharts sources>
+            // full width minus text width
+            itemExtraWidth = symbolWidth + symbolPadding +
+                itemDistance + (showCheckbox ? 20 : 0), useHTML = options.useHTML, itemClassName = item.options.className;
+            //</grabbed from fresh highcharts sources>
 
             if (!li) { // generate it once, later move it
 
@@ -10873,52 +11024,83 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
                 }
             }
 
+            //<grabbed from fresh highcharts sources>
+
+            // Take care of max width and text overflow (#6659)
+            if (chart.styledMode || !itemStyle.width) {
+                li.css({
+                    width: (options.itemWidth ||
+                        legend.widthOption ||
+                        chart.spacingBox.width) - itemExtraWidth
+                });
+            }
+            // Always update the text
+            legend.setText(item);
+
+            //</grabbed from fresh highcharts sources>
+
             // calculate the positions for the next line
             bBox = li.getBBox();
 
-            itemWidth = item.checkboxOffset =
+            item.itemWidth = itemWidth = item.checkboxOffset =
                 options.itemWidth ||
                 item.legendItemWidth ||
                 symbolWidth + symbolPadding + bBox.width + itemDistance + (showCheckbox ? 20 : 0);
-            legend.itemHeight = itemHeight = mathRound(item.legendItemHeight || bBox.height);
-
-            // if the item exceeds the width, start a new line
-            if (horizontal && legend.itemX - initialItemX + itemWidth >
-                (widthOption || (chart.chartWidth - 2 * padding - initialItemX - options.x))) {
-                legend.itemX = initialItemX;
-                legend.itemY += itemMarginTop + legend.lastLineHeight + itemMarginBottom;
-                legend.lastLineHeight = 0; // reset for next line
-            }
-
-            // If the item exceeds the height, start a new column
-            /*if (!horizontal && legend.itemY + options.y + itemHeight > chart.chartHeight - spacingTop - spacingBottom) {
-                legend.itemY = legend.initialItemY;
-                legend.itemX += legend.maxItemWidth;
-                legend.maxItemWidth = 0;
-            }*/
+            legend.itemHeight = item.itemHeight = itemHeight = mathRound(item.legendItemHeight || bBox.height);
 
             // Set the edge positions
             legend.maxItemWidth = mathMax(legend.maxItemWidth, itemWidth);
-            legend.lastItemY = itemMarginTop + legend.itemY + itemMarginBottom;
-            legend.lastLineHeight = mathMax(itemHeight, legend.lastLineHeight); // #915
 
             // cache the position of the newly generated or reordered items
-            item._legendItemPos = [legend.itemX, legend.itemY];
+        },
 
+        /**
+             * Get the position of the item in the layout. We now know the
+             * maxItemWidth from the previous loop.
+             *
+             * @private
+             * @function Highcharts.Legend#layoutItem
+             *
+             * @param {Highcharts.BubbleLegend|Highcharts.Point|Highcharts.Series} item
+             *
+             * @return {void}
+             */
+        layoutItem: function (item) {
+            var options = this.options, padding = this.padding, horizontal = options.layout === 'horizontal', itemHeight = item.itemHeight, itemMarginBottom = 0, itemMarginTop = 0, itemDistance = horizontal ? pick(options.itemDistance, 20) : 0, maxLegendWidth = this.maxLegendWidth, itemWidth = (options.alignColumns &&
+                this.totalItemWidth > maxLegendWidth) ?
+                this.maxItemWidth :
+                item.itemWidth;
+            // If the item exceeds the width, start a new line
+            if (horizontal &&
+                this.itemX - padding + itemWidth > maxLegendWidth) {
+                this.itemX = padding;
+                if (this.lastLineHeight) { // Not for the first line (#10167)
+                    this.itemY += (itemMarginTop +
+                        this.lastLineHeight +
+                        itemMarginBottom);
+                }
+                this.lastLineHeight = 0; // reset for next line (#915, #3976)
+            }
+            // Set the edge positions
+            this.lastItemY = itemMarginTop + this.itemY + itemMarginBottom;
+            this.lastLineHeight = Math.max(// #915
+                itemHeight, this.lastLineHeight);
+            // cache the position of the newly generated or reordered items
+            item._legendItemPos = [this.itemX, this.itemY];
             // advance
             if (horizontal) {
-                legend.itemX += itemWidth;
-
-            } else {
-                legend.itemY += itemMarginTop + itemHeight + itemMarginBottom;
-                legend.lastLineHeight = itemHeight;
+                this.itemX += itemWidth;
             }
-
+            else {
+                this.itemY +=
+                    itemMarginTop + itemHeight + itemMarginBottom;
+                this.lastLineHeight = itemHeight;
+            }
             // the width of the widest item
-            legend.offsetWidth = widthOption || mathMax(
-                (horizontal ? legend.itemX - initialItemX - itemDistance : itemWidth) + padding,
-                legend.offsetWidth
-            );
+            this.offsetWidth = this.widthOption || Math.max((horizontal ? this.itemX - padding - (item.checkbox ?
+                // decrease by itemDistance only when no checkbox #4853
+                0 :
+                itemDistance) : itemWidth) + padding, this.offsetWidth);
         },
 
         /**
@@ -11003,6 +11185,9 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
             legend.offsetWidth = 0;
             legend.lastItemY = 0;
 
+            legend.maxLegendWidth =
+                chart.spacingBox.width - 2 * padding - options.x;
+
             if (!legendGroup) {
                 legend.group = legendGroup = renderer.g('legend')
                     .attr({ zIndex: 7 })
@@ -11019,7 +11204,8 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
             legend.options.symbolRadius = 2;
 
             if (legend.options.showAllCaption && legend.options.showAllCaption != "") {
-                var selectAllItem = { name: legend.options.showAllCaption, id: "selectAllItemsLegendItem", visible: true, legendColor: chart.options.chart.plotBackgroundColor };
+                //At the very beginning, show all legends. So the default visible of 'Show All' be false.
+                var selectAllItem = { name: legend.options.showAllCaption, id: "selectAllItemsLegendItem", visible: false, legendColor: chart.options.chart.plotBackgroundColor };
                 selectAllItem.drawLegendSymbol = allItems[0].drawLegendSymbol || (allItems[0].series && allItems[0].series.drawLegendSymbol);
                 if (selectAllItem.drawLegendSymbol == LegendSymbolMixin.drawLineMarker) {
                     selectAllItem.drawLegendSymbol = LegendSymbolMixin.drawRectangle;
@@ -11046,6 +11232,10 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
             // render the items
             each(allItems, function (item) {
                 legend.renderItem(item);
+            });
+
+            each(allItems, function (item) {
+                legend.layoutItem(item);
             });
 
             // Draw the border
@@ -11476,6 +11666,8 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
             var chart = this,
                 eventType;
 
+            chart.attachScrolling();
+
             // Add the chart to the global lookup
             chart.index = charts.length;
             charts.push(chart);
@@ -11774,7 +11966,8 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
             renderer.draw();
 
             // fire the event
-            fireEvent(chart, 'redraw'); // jQuery breaks this when calling it from addEvent. Overwrites chart.redraw
+            fireEvent(chart, 'redraw'); // jQuery breaks this when calling it from addEvent. Overwrites chart.redraw            
+            fireEvent(chart, 'render');
 
             if (isHiddenChart) {
                 chart.cloneRenderTo(true);
@@ -12480,6 +12673,8 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
                     axis.setAxisTranslation();
                 });
             }
+
+            fireEvent(chart, 'afterSetChartSize', { skipAxes: skipAxes });
         },
 
         /**
@@ -13044,6 +13239,7 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
             chart.cloneRenderTo(true);
             
             fireEvent(chart, 'load');
+            fireEvent(this, 'render');
         },
 
         /**
@@ -13859,12 +14055,22 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
                 }
             }
 
+            //LOGIFIX REPDEV-24454
+            //We need to sort series data to find right closest distance (if series require sorting)
+            var processedXDataSorted,
+                closestPointRangeData;
+            if (series.requireSorting) {
+                processedXDataSorted = processedXData.slice();
+                processedXDataSorted.sort(function (a, b) { return a - b });
+            }
+
+            closestPointRangeData = processedXDataSorted ? processedXDataSorted : processedXData;
 
             // Find the closest distance between processed points
-            for (i = processedXData.length - 1; i >= 0; i--) {
-                distance = processedXData[i] - processedXData[i - 1];
+            for (i = closestPointRangeData.length - 1; i >= 0; i--) {
+                distance = closestPointRangeData[i] - closestPointRangeData[i - 1];
 
-                if (!cropped && processedXData[i] > min && processedXData[i] < max) {
+                if (!cropped && closestPointRangeData[i] > min && closestPointRangeData[i] < max) {
                     activePointCount++;
                 }
 
@@ -16652,7 +16858,7 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
         pointPadding: 0.1,
         //pointWidth: null,
         minPointLength: 0,
-        cropThreshold: 50, // when there are more points, they will not animate out of the chart on xAxis.setExtremes
+        //cropThreshold: 50, // when there are more points, they will not animate out of the chart on xAxis.setExtremes
         pointRange: null, // null means auto, meaning 1 in a categorized axis and least distance between points if not categories
         states: {
             hover: {
@@ -18458,20 +18664,7 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
                         }
                         allItemsSelected = allItemsSelected && item.visible;
                     })
-                    if (allItemsSelected) {
-                        //each(item.chart.series, function (serie) {
-                        //    serie.hide();
-                        //})
-                        each(allItems, function (item) {
-                            if (item.id && item.id == "selectAllItemsLegendItem") {
-                                return;
-                            }
-                            (item.setVisible && item.setVisible(false, false));
-                        })
-                        item.chart.redraw();
-                        return;
-                    }
-                    else {
+                    if (!allItemsSelected){
                         //each(item.chart.series, function (serie) {
                         //    serie.show();
                         //})                        
@@ -18481,6 +18674,7 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
                             }
                             (item.setVisible && item.setVisible(true, false));
                         })
+                        item.chart.legend.colorizeItem(item, false);
                         item.chart.redraw();
                         return;
                     }
@@ -18507,6 +18701,31 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
                     var strLegendItemClick = 'legendItemClick',
                         fnLegendItemClick = function () {
                             item.setVisible();
+                            var allItemsSelected = true;
+                            var allItems = item.chart.series[0].options.legendType === 'point' ?
+                                item.chart.series[0].data :
+                                item.chart.series;
+
+                            each(allItems, function (item) {
+                                if (item.id && item.id == "selectAllItemsLegendItem") {
+                                    return;
+                                }
+                                allItemsSelected = allItemsSelected && item.visible;
+                            })
+                            var showAllLegend;
+                            allLegend = item.chart.legend.allItems;
+                            each(allLegend, function (le) {
+                                if (le.id && le.id == "selectAllItemsLegendItem") {
+                                    showAllLegend = le;
+                                }
+                            })
+                            if (allItemsSelected) {
+                                item.chart.legend.colorizeItem(showAllLegend, false);
+                            }
+                            else {
+                                item.chart.legend.colorizeItem(showAllLegend, true);
+                            }
+                            item.chart.redraw();
                         };
 
                     // Pass over the click/touch event. #4.
@@ -18686,8 +18905,285 @@ function isIEFunction() { //LOGIFIX 22307 Analysis Grid:`Member not found' js er
                 chart.redraw(false);
             }
             css(chart.container, { cursor: 'move' });
-        }
+        },
 
+        attachScrolling: function () {
+
+            addEvent(this, 'afterSetChartSize', function (e) {
+                var scrollablePlotArea = this.options.chart.scrollablePlotArea, scrollableMinWidth = scrollablePlotArea && scrollablePlotArea.minWidth, scrollableMinHeight = scrollablePlotArea && scrollablePlotArea.minHeight, scrollablePixelsX, scrollablePixelsY, corrections;
+                if (!this.renderer.forExport) {
+                    // The amount of pixels to scroll, the difference between chart
+                    // width and scrollable width
+                    if (scrollableMinWidth) {
+                        this.scrollablePixelsX = scrollablePixelsX = Math.max(0, scrollableMinWidth - this.chartWidth);
+                        if (scrollablePixelsX) {
+                            if (!this.options.chart.scrollablePlotArea.marginHeightSet) { //do this once, alter options
+                                this.spacing[2] += 17; //magic number, represents default horizontal scrollbar height. We need to reserve space for it.
+                                this.options.chart.scrollablePlotArea.marginHeightSet = true;
+                            }
+                            this.plotWidth += scrollablePixelsX;
+                            if (this.inverted) {
+                                this.clipBox.height += scrollablePixelsX;
+                                this.plotBox.height += scrollablePixelsX;
+                            }
+                            else {
+                                this.clipBox.width += scrollablePixelsX;
+                                this.plotBox.width += scrollablePixelsX;
+                            }
+                            corrections = {
+                                // Corrections for right side
+                                1: { name: 'right', value: scrollablePixelsX }
+                            };
+                        }
+                        // Currently we can only do either X or Y
+                    }
+                    else if (scrollableMinHeight) {
+                        this.scrollablePixelsY = scrollablePixelsY = Math.max(0, scrollableMinHeight - this.chartHeight);
+                        if (scrollablePixelsY) {
+                            if (!this.options.chart.scrollablePlotArea.marginWidthSet) { //do this once, alter options
+                                this.options.chart.spacing[1] += 17; //magic number, represents default vertical scrollbar width. We need to reserve space for it.
+                                this.options.chart.scrollablePlotArea.marginWidthSet = true;
+                            }
+                            this.plotHeight += scrollablePixelsY;
+                            if (this.inverted) {
+                                this.clipBox.width += scrollablePixelsY;
+                                this.plotBox.width += scrollablePixelsY;
+                            }
+                            else {
+                                this.clipBox.height += scrollablePixelsY;
+                                this.plotBox.height += scrollablePixelsY;
+                            }
+                            corrections = {
+                                2: { name: 'bottom', value: scrollablePixelsY }
+                            };
+                        }
+                    }
+                    if (corrections && !e.skipAxes) {
+                        this.axes.forEach(function (axis) {
+                            // For right and bottom axes, only fix the plot line length
+                            if (corrections[axis.side]) {
+                                // Get the plot lines right in getPlotLinePath,
+                                // temporarily set it to the adjusted plot width.
+                                axis.getPlotLinePath = function () {
+                                    var marginName = corrections[axis.side].name, correctionValue = corrections[axis.side].value,
+                                        // axis.right or axis.bottom
+                                        margin = this[marginName], path;
+                                    // Temporarily adjust
+                                    this[marginName] = margin - correctionValue;
+                                    path = Highcharts.Axis.prototype.getPlotLinePath.apply(this, arguments);
+                                    // Reset
+                                    this[marginName] = margin;
+                                    return path;
+                                };
+                            }
+                            else {
+                                // Apply the corrected plotWidth
+                                axis.setAxisSize();
+                                axis.setAxisTranslation();
+                            }
+                        });
+                    }
+                }
+            });
+
+            addEvent(this, 'render', function () {
+                if (this.scrollablePixelsX || this.scrollablePixelsY) {
+                    if (this.setUpScrolling) {
+                        this.setUpScrolling();
+                    }
+                    this.applyFixed();
+                }
+                else if (this.fixedDiv) { // Has been in scrollable mode
+                    this.applyFixed();
+                }
+            });
+        },
+        
+
+        setUpScrolling: function () {
+            var _this = this;
+            var attribs = {
+                WebkitOverflowScrolling: 'touch',
+                overflowX: 'hidden',
+                overflowY: 'hidden'
+            };
+            if (this.scrollablePixelsX) {
+                attribs.overflowX = 'auto';
+            }
+            if (this.scrollablePixelsY) {
+                attribs.overflowY = 'auto';
+            }
+            // Add the necessary divs to provide scrolling
+            this.scrollingContainer = createElement('div', {
+                'className': 'highcharts-scrolling'
+            }, attribs, this.renderTo);
+            // On scroll, reset the chart position because it applies to the scrolled
+            // container
+            addEvent(this.scrollingContainer, 'scroll', function () {
+                if (_this.pointer) {
+                    delete _this.pointer.chartPosition;
+                }
+            });
+            this.innerContainer = createElement('div', {
+                'className': 'highcharts-inner-container'
+            }, null, this.scrollingContainer);
+            // Now move the container inside
+            this.innerContainer.appendChild(this.container);
+            // Don't run again
+            this.setUpScrolling = null;
+        },
+
+        moveFixedElements: function () {
+            var container = this.container, fixedRenderer = this.fixedRenderer, fixedSelectors = [
+                '.highcharts-contextbutton',
+                '.highcharts-credits',
+                '.highcharts-legend',
+                '.highcharts-legend-checkbox',
+                '.highcharts-navigator-series',
+                '.highcharts-navigator-xaxis',
+                '.highcharts-navigator-yaxis',
+                '.highcharts-navigator',
+                '.highcharts-reset-zoom',
+                '.highcharts-scrollbar',
+                '.highcharts-subtitle',
+                '.highcharts-title',
+                '.highcharts-tooltip',
+                '.highcharts-button'
+            ], axisClass;
+            if (this.scrollablePixelsX && !this.inverted) {
+                axisClass = '.highcharts-yaxis';
+            }
+            else if (this.scrollablePixelsX && this.inverted) {
+                axisClass = '.highcharts-xaxis';
+            }
+            else if (this.scrollablePixelsY && !this.inverted) {
+                axisClass = '.highcharts-xaxis';
+            }
+            else if (this.scrollablePixelsY && this.inverted) {
+                axisClass = '.highcharts-yaxis';
+            }
+            fixedSelectors.push(axisClass, axisClass + '-labels');
+            fixedSelectors.forEach(function (className) {
+                [].forEach.call(container.querySelectorAll(className), function (elem) {
+                    (elem.namespaceURI === SVG_NS ?
+                        fixedRenderer.box :
+                        fixedRenderer.box.parentNode).appendChild(elem);
+                    elem.style.pointerEvents = 'auto';
+                });
+            });
+        },
+
+        applyFixed: function () {
+            var fixedRenderer, scrollableWidth, scrollableHeight, firstTime = !this.fixedDiv, scrollableOptions = this.options.chart.scrollablePlotArea;
+            // First render
+            if (firstTime) {
+                this.fixedDiv = createElement('div', {
+                    className: 'highcharts-fixed'
+                }, {
+                    position: 'absolute',
+                    overflow: 'hidden',
+                    pointerEvents: 'none',
+                    zIndex: 2
+                }, null, true);
+                this.renderTo.insertBefore(this.fixedDiv, this.renderTo.firstChild);
+                this.renderTo.style.overflow = 'visible';
+                this.fixedRenderer = fixedRenderer = new Highcharts.Renderer(this.fixedDiv, this.chartWidth, this.chartHeight);
+                // Mask
+                this.scrollableMask = fixedRenderer
+                    .path()
+                    .attr({
+                        fill: this.options.chart.backgroundColor || '#fff',
+                        'fill-opacity': pick(scrollableOptions.opacity, 0.85),
+                        zIndex: -1
+                    })
+                    .addClass('highcharts-scrollable-mask')
+                    .add();
+                this.moveFixedElements();
+                addEvent(this, 'afterShowResetZoom', this.moveFixedElements);
+                addEvent(this, 'afterLayOutTitles', this.moveFixedElements);
+            }
+            else {
+                // Set the size of the fixed renderer to the visible width
+                this.fixedRenderer.setSize(this.chartWidth, this.chartHeight);
+            }
+            // Increase the size of the scrollable renderer and background
+            scrollableWidth = this.chartWidth + (this.scrollablePixelsX || 0);
+            scrollableHeight = this.chartHeight + (this.scrollablePixelsY || 0);
+            stop(this.renderer.boxWrapper);
+            stop(this.chartBackground);
+            this.container.style.width = scrollableWidth + 'px';
+            this.container.style.height = scrollableHeight + 'px';
+            this.renderer.boxWrapper.attr({
+                width: scrollableWidth,
+                height: scrollableHeight,
+                viewBox: [0, 0, scrollableWidth, scrollableHeight].join(' ')
+            });
+            this.chartBackground.attr({
+                width: scrollableWidth,
+                height: scrollableHeight
+            });
+            if (this.scrollablePixelsY) {
+                this.scrollingContainer.style.height = this.chartHeight + 'px';
+            }
+            // Set scroll position
+            if (firstTime) {
+                if (scrollableOptions.scrollPositionX) {
+                    this.scrollingContainer.scrollLeft =
+                        this.scrollablePixelsX *
+                        scrollableOptions.scrollPositionX;
+                }
+                if (scrollableOptions.scrollPositionY) {
+                    this.scrollingContainer.scrollTop =
+                        this.scrollablePixelsY *
+                        scrollableOptions.scrollPositionY;
+                }
+            }
+            // Mask behind the left and right side
+            var axisOffset = this.axisOffset, maskTop = this.plotTop - axisOffset[0] - 1, maskLeft = this.plotLeft - axisOffset[3] - 1, maskBottom = this.plotTop + this.plotHeight + axisOffset[2] + 1, maskRight = this.plotLeft + this.plotWidth + axisOffset[1] + 1, maskPlotRight = this.plotLeft + this.plotWidth -
+                (this.scrollablePixelsX || 0), maskPlotBottom = this.plotTop + this.plotHeight -
+                    (this.scrollablePixelsY || 0), d;
+            if (this.scrollablePixelsX) {
+                d = [
+                    // Left side
+                    'M', 0, maskTop,
+                    'L', this.plotLeft - 1, maskTop,
+                    'L', this.plotLeft - 1, maskBottom,
+                    'L', 0, maskBottom,
+                    'Z',
+                    // Right side
+                    'M', maskPlotRight, maskTop,
+                    'L', this.chartWidth, maskTop,
+                    'L', this.chartWidth, maskBottom,
+                    'L', maskPlotRight, maskBottom,
+                    'Z'
+                ];
+            }
+            else if (this.scrollablePixelsY) {
+                d = [
+                    // Top side
+                    'M', maskLeft, 0,
+                    'L', maskLeft, this.plotTop - 1,
+                    'L', maskRight, this.plotTop - 1,
+                    'L', maskRight, 0,
+                    'Z',
+                    // Bottom side
+                    'M', maskLeft, maskPlotBottom,
+                    'L', maskLeft, this.chartHeight,
+                    'L', maskRight, this.chartHeight,
+                    'L', maskRight, maskPlotBottom,
+                    'Z'
+                ];
+            }
+            else {
+                d = ['M', 0, 0];
+            }
+            if (this.redrawTrigger !== 'adjustHeight') {
+                this.scrollableMask.attr({
+                    d: d
+                });
+            }
+        }
+        
     });
 
     /*

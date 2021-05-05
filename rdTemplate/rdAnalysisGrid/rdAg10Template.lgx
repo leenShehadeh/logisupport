@@ -492,6 +492,7 @@
           <InputHidden ID="rdAgPanelOrder" DefaultValue="" />
           <InputHidden ID="rdAgActiveAggregates" />
           <InputHidden ID="rdAgActiveSQL" />
+          <InputHidden ID="rdAgWaitPage" />
           <Rows Class="rdAgPanel" ID="rowsTable" Width="100" WidthScale="%">
             <Row ID="rowContentTableHeading" Class="rdAgContentHeadingItem" ShowModes="rdBrowser">
               <Column Class="rdAgBackground rdAgControls">
@@ -633,6 +634,7 @@
                                             </Row>
                                           </Rows>
                                           <InputCheckboxList ID="iclLayout" CheckboxListDropdown="False" MultiSelect="True" OptionCaptionColumn="Header" OptionValueColumn="ID" ColumnCount="4" CheckAllCaption="(All)">
+                                            <InputTextDelimiter Delimiter="," EscapeCharacter="\" Qualifier="&quot;" />
                                             <DataLayer Type="Static" ID="dlLayout" />
                                           </InputCheckboxList>
                                           <Row ID="RowLayoutControls">
@@ -790,7 +792,7 @@
                                                   <Label ID="lblAggrColumn" Caption="Data Column " For="rdAgAggrColumn" />
                                                 </Column>
                                                 <Column ID="colAggrColumnCell2">
-                                                  <InputSelectList OptionValueColumn="DataColumn" ID="rdAgAggrColumn" IncludeBlank="True" OptionCaptionColumn="ColumnName" DefaultValue="@Request.rdAgAggrColumn~">
+                                                  <InputSelectList OptionValueColumn="DataColumn" ID="rdAgAggrColumn" IncludeBlank="True" IncludeBlankCaption="All" IncludeBlankValue="@CurrentColumn" OptionCaptionColumn="ColumnName" DefaultValue="@Request.rdAgAggrColumn~">
                                                     <DataLayer Type="Static" ID="dlAggrColumns" />
                                                     <EventHandler DhtmlEvent="onchange">
                                                       <Action Type="Link" ID="actionChangeAggregateOptions">
@@ -846,7 +848,7 @@
                                           </Division>
                                           <Division ID="divAggrList" ShowModes="None">
                                             <LineBreak LineCount="2" ID="nlAggrList" />
-                                            <Label Caption="Aggregates:" ID="lblAggrs" Class="rdAgContentHeading" />
+                                            <Label Caption="Added Aggregates:" ID="lblAggrs" Class="rdAgContentHeading" />
                                             <DataTable ID="dtAggrs">
                                               <DataLayer Type="Static" ID="dlAggrs" />
                                               <DataTableColumn ID="colAggrName" Width="50" WidthScale="%" Class="ThemeNoWrap">
@@ -1215,7 +1217,7 @@
       </Row>
 
 
-      <PopupPanel ID="rdAgCustAggPopup" PopupModal="True" Draggable="True" PopupPanelLocation="Center" Caption="Add a custom aggregation from a formula." ShowOnPageLoad="False">
+      <PopupPanel ID="rdAgCustAggPopup" PopupModal="True" Draggable="True" PopupPanelLocation="Center" Caption="Create a custom aggregation for the selected data type(s)." ShowOnPageLoad="False">
         <Division ID="divCustAggAdd">
           <Rows ID="rowsCustAgg">
             <Row ID="row1CustAgg">
@@ -1229,7 +1231,6 @@
                 <Label Caption="Formula Help" Class="rdAgCommand" ID="lblCustAggHelp">
                   <Action ID="actCustAggHelp" Type="Report">
                     <Target FrameID="NewWindow" ID="tgtCustAggHelp" Report="rdAg10HelpCustAgg" Type="Report" />
-                    <LinkParams rdAgCommand="CustAggAdd" />
                   </Action>
                 </Label>
               </Column>
@@ -1239,7 +1240,7 @@
                 <Label Caption="Formula" For="rdAgCustAggFormula" ID="lblCustAggFormula" />
               </Column>
               <Column ID="col2Row2CustAgg">
-                <InputTextArea ID="rdAgCustAggFormula" InputColumns="50" InputRows="5">
+                <InputTextArea ID="rdAgCustAggFormula" InputColumns="50" InputRows="5" DefaultValue="@Request.rdAgCustAggFormula~">
                   <EventHandler DhtmlEvent="onblur">
                     <Action Javascript="rdCustAggFormulaTextSelection = rdGetCustAggFormulaSelection()" Type="Javascript" />
                   </EventHandler>
@@ -1305,27 +1306,57 @@
                   </DataLayer>
                 </InputSelectList>
               </Column>
-              <Column ID="col3row3CustAgg">
-              </Column>
+              <Column ID="col3row3CustAgg" />
             </Row>
             <Row>
-              <Column/>
-              <Column ID="col2Row3bCustAg">
-                <Label Caption="Add" Class="rdAgCommand" ID="lblCustAggOk">
-                  <Action ID="actAddCustAgg" Type="Report">
-                    <Target ID="tgtAddCustAggReport" Type="Report" />
-                    <LinkParams rdAgCommand="CustAggAdd" rdAgCommandID="@Function.GUID~" />
-                  </Action>
-                </Label>
+              <Column>
+                <Label Caption="Data Types" ID="rdAgCustAggDataTypesLabel" />
               </Column>
-              <Column/>
+              <Column>
+                <FieldsetBox ID="rdAgCustAggDataTypesFieldBox">
+                  <InputCheckboxList OptionCaptionColumn="Caption" ID="rdAgCustAggDataTypes" OptionValueColumn="Value" CheckAllCaption="All" MultiSelect="True" DefaultValue="@Request.rdAgCustAggDataTypes~" ColumnCount="3">
+                    <DataLayer Type="Static">
+                      <StaticDataRow Caption="Boolean" Value="Boolean" />
+                      <StaticDataRow Caption="Date" Value="Date" />
+                      <StaticDataRow Caption="DateTime" Value="DateTime" />
+                      <StaticDataRow Caption="Number" Value="Number" />
+                      <StaticDataRow Caption="Text" Value="Text" />
+                    </DataLayer>
+                    <EventHandler DhtmlEvent="onchange">
+                      <Action Type="Javascript" ID="rdAgCustAggDataTypeChange" Javascript="ShowElement(null, &quot;divCustAggError-NoDataTypeSelected&quot;, &quot;Hide&quot;);" />
+                    </EventHandler>
+                  </InputCheckboxList>
+                </FieldsetBox>
+              </Column>
+              <Column ID="col2Row3bCustAg" Class="ThemeAlignBottomRight">
+                <Rows Width="100" WidthScale="%" CellSpacing="0">
+                  <Row>
+                    <Column Width="50" WidthScale="%">
+                      <InputCheckbox CheckedValue="True" ID="rdAgCreateAndAdd" DefaultValue="@Request.rdAgCreateAndAdd~" UncheckedValue="False" />
+                      <Label Caption="Add to the table" For="rdAgCreateAndAdd" ID="rdAgCreateAndAddLabel" />
+                    </Column>
+                    <Column Width="50" WidthScale="%" Class="ThemeAlignBottomRight">
+                      <Label Caption="Create" Class="rdAgCommand" ID="lblCustAggOk">
+                        <Action Type="RefreshElement" ID="actAddCustAgg" ElementID="rdAgCustAggPopup" PostRefreshJavascript="rdAgCustAggPopup_AfterRefresh();">
+                          <LinkParams rdAgCommand="CustAggCreate" rdAgCommandID="@Function.GUID~" rdSkipPageLoadScripts="True" />
+                          <Action Type="PreActionJavascript" Javascript="rdAgCustAggRefresh=true;return rdAgCustAggPreAdd(this);" />
+                        </Action>
+                      </Label>
+                    </Column>
+                  </Row>
+                </Rows>
+              </Column>
             </Row>
             <Row ID="row4CustAgg">
               <Column ID="col1Row4CustAgg" />
               <Column ID="col2Row4CustAgg" ColSpan="2">
+                <Division ID="divCustAggError-NoDataTypeSelected">
+                  <Spaces Size="3" />
+                  <Label Caption="Data Type is required." Class="rdAgError" />
+                </Division>
                 <Division Condition="@Session.agCustAggError-BlankName~" ID="divCustAggError-BlankName">
                   <Spaces Size="3" />
-                  <Label Caption="Enter a Name for the column." Class="rdAgError" ID="lblCustAggError-BlankName" />
+                  <Label Caption="Enter a Name for the custom aggregate." Class="rdAgError" ID="lblCustAggError-BlankName" />
                 </Division>
                 <Division Condition="@Session.agCustAggError-InvalidColumn~" ID="divCustAggError-InvalidColumn">
                   <Spaces Size="3" />
@@ -1361,42 +1392,52 @@
             </Row>
           </Rows>
         </Division>
-        <Division ID="divCustAggList" ShowModes="None">
+        <Division ID="rdAgDivCustAggList" ShowModes="None">
           <LineBreak ID="nlCustAggList" />
           <Label Caption="Custom Aggregates:" Class="rdAgContentHeading" ID="lblCustAggs" />
           <DataTable Class="rdNoClass" ID="dtCustAggs">
             <DataLayer ID="dlCustAggs" Type="Static" />
-            <DataTableColumn Class="rdNoClass" ID="colCustAggName">
+            <DataTableColumn ID="colCustAggAdded" Class="ThemeAlignCenter" Header="Added">
+              <InputCheckbox CheckedValue="True" ID="rdAgCustAggAdded" DefaultValue="@Data.Added~" UncheckedValue="False">
+                <EventHandler DhtmlEvent="onchange">
+                  <Action Type="RefreshElement" ID="actCustAggAdd" ElementID="rdAgCustAggPopup" PostRefreshJavascript="rdAgCustAggPopup_AfterRefresh();">
+                    <LinkParams rdAgCustAggID="@Data.ID~" rdAgCommand="CustAggAdd" rdAgCommandID="@Function.GUID~" rdSkipPageLoadScripts="True" rdAgCustAggRow="@Function.RowNumber~" />
+                    <Action Type="PreActionJavascript" Javascript="rdAgCustAggRefresh=true;return true;" />
+                  </Action>
+                </EventHandler>
+              </InputCheckbox>
+            </DataTableColumn>
+            <DataTableColumn Class="rdNoClass" ID="colCustAggName" Header="Name">
               <Label Caption="@Data.Name~" ID="lblCustAggName">
-                <Action ID="actShowCustAgg" Type="Link">
-                  <Target ID="tgtShowCustAgg" Link="javascript:&#xD;&#xA;document.rdForm.rdAgCustAggName.value=document.getElementById('lblCustAggName_Row@Function.RowNumber~').innerText;&#xD;&#xA;document.rdForm.rdAgCustAggFormula.value=document.getElementById('lblCustAggFormula_Row@Function.RowNumber~').innerText;&#xD;&#xA;document.rdForm.rdAgCustAggFormats.value=&quot;@Data.Format~&quot;;&#xD;&#xA;" Type="Link" />
-                </Action>
+                <Action Type="Javascript" Javascript="rdAgRestoreCustomAggregate('@Function.RowNumber~','@Data.Format~');" ID="actShowCustAgg" />
               </Label>
               <InputHidden ID="rdAgCustAggColumnHidden" DefaultValue="@Data.Column~" />
               <InputHidden ID="rdAgCustAggIdHidden" DefaultValue="@Data.ID~" />
               <Spaces Size="3" />
             </DataTableColumn>
-            <DataTableColumn Class="rdNoClass" ID="colCustAggFormula">
+            <DataTableColumn Class="rdNoClass" ID="colCustAggFormula" Header="Formula">
               <Label Caption="@Data.Formula~" ID="lblCustAggFormula">
-                <Action ID="actShowCustAgg" Type="Link">
-                  <Target ID="tgtShowCustAgg" Link="javascript:&#xD;&#xA;document.rdForm.rdAgCustAggName.value=document.getElementById('lblCustAggName_Row@Function.RowNumber~').innerText;&#xD;&#xA;document.rdForm.rdAgCustAggFormula.value=document.getElementById('lblCustAggFormula_Row@Function.RowNumber~').innerText;&#xD;&#xA;document.rdForm.rdAgCustAggFormats.value=&quot;@Data.Format~&quot;;&#xD;&#xA;" Type="Link" />
-                </Action>
+                <Action Type="Javascript" Javascript="rdAgRestoreCustomAggregate('@Function.RowNumber~','@Data.Format~');" ID="actShowCustAgg" />
               </Label>
+              <Spaces Size="3" />
+            </DataTableColumn>
+            <DataTableColumn Class="rdNoClass" ID="colCustAggDataTypes" Header="Data Types">
+              <Label Caption="@Data.DataTypes~" ID="lblCustAggDataTypes" />
               <Spaces Size="3" />
             </DataTableColumn>
             <DataTableColumn Class="rdNoClass" ID="colCustAggReplace">
               <Label Caption="Replace" Class="rdAgCommand" ID="lblCustAggReplace">
-                <Action ConfirmMessage="Replace?  Are you sure?" ID="actCustAggReplace" Type="Report">
-                  <Target ID="tgtCustAggReplace" Type="Report" />
-                  <LinkParams rdAgCustAggID="@Data.ID~" rdAgCommand="CustAggReplace" rdAgCommandID="@Function.GUID~" />
+                <Action Type="RefreshElement" ID="actCustAggReplace" ElementID="rdAgCustAggPopup" ConfirmMessage="Replace?  Are you sure?" PostRefreshJavascript="rdAgCustAggPopup_AfterRefresh();">
+                  <LinkParams rdAgCustAggID="@Data.ID~" rdAgCommand="CustAggReplace" rdAgCommandID="@Function.GUID~" rdSkipPageLoadScripts="True" />
+                  <Action Type="PreActionJavascript" Javascript="rdAgCustAggRefresh=true;return true;" />
                 </Action>
               </Label>
             </DataTableColumn>
             <DataTableColumn Class="rdNoClass" ID="colCustAggRemove">
               <Image Caption="rdTemplate/rdDelete2.png" ID="imgCustAggRemove" Tooltip="Remove.">
-                <Action ConfirmMessage="Remove?  Are you sure?" ID="actCustAggRemove" Type="Report">
-                  <Target ID="tgtCustAggRemove" Type="Report" />
-                  <LinkParams rdAgCustAggID="@Data.ID~" rdAgCommand="CustAggRemove" rdAgCommandID="@Function.GUID~" />
+                <Action Type="RefreshElement" ElementID="rdAgCustAggPopup" ID="actCustAggRemove" ConfirmMessage="Remove?  Are you sure?" PostRefreshJavascript="rdAgCustAggPopup_AfterRefresh();">
+                  <LinkParams rdAgCustAggID="@Data.ID~" rdAgCommand="CustAggRemove" rdAgCommandID="@Function.GUID~" rdSkipPageLoadScripts="True" />
+                  <Action Type="PreActionJavascript" Javascript="rdAgCustAggRefresh=true;return true;" />
                 </Action>
               </Image>
             </DataTableColumn>
@@ -1429,6 +1470,12 @@
             </PopupOption>
           </Action>
         </Button>
+        <Division Class="ThemeHidden">
+          <Label Caption="Create a custom aggregation for {0}." ID="rdAgOneColCustAggTitle" />
+          <Label Caption="Current Column" ID="rdAgCurrentColumnText" />
+          <Label Caption="No suitable column was found for testing this formula." ID="rdAgCustAggNoColumnError" />
+          <Label Caption="(Custom)" ID="rdAgCustAggShowPopupCaption" />
+        </Division>
       </PopupPanel>
       
       

@@ -378,6 +378,18 @@
                             <Label ID="rdPanelGlobalFilterCaption_rdInstanceID" />
                           </Column>
                         </Row>
+                        <Row ID="rdDrillFilterCaption_rdInstanceID_Container" Class="rdChartDrillToBreadcrumb" ShowModes="None">
+                          <Column Class="rdDrillFilterCaption">
+                            <Division HtmlDiv="True" Class="rdDrillFilterRow">
+                              <Label ID="rdDrillFilterCaption_rdInstanceID" Class="rdDrillFilterContent"/>
+                              <Label ID="rdDrillFilterClearButton_rdInstanceID" Class="rdDrillFilterClearButton" Caption="X" Tooltip="Clear Drill States"/>
+                            </Division>
+                          </Column>
+						  <Division HtmlDiv="True" Class="rdPopupMenu rdDrillFilterMenu" ShowModes="None" ID="rdDrillFilterMenu_rdInstanceID_rdPopup">
+                            <Division HtmlDiv="True" Class="bd">
+                            </Division>
+                          </Division>
+                        </Row>
                         <Row ID="rdDashboard2PanelParamsID" Class="rdDashboardParams" ShowModes="None">
 													<Column>
 														<PopupPanel ID="ppPanelParamsID" PopupModal="True" Draggable="True" PopupPanelLocation="Mouse" CloseButtonCaption="X" Caption="Edit">
@@ -440,7 +452,7 @@
           <InputSelectionEvent Type="Point">
             <Action Type="Javascript" Javascript="rdDbSetGlobalFilterFromChart('rdPnlInstanceID','Categorized','--DataColumnID--');" PopupMenuCaption="Global Filter" />
           </InputSelectionEvent>
-          <Division ID="rdGlobalFilterHiddenValues">
+          <Division ID="rdGlobalFilterHiddenValues_rdPnlInstanceID">
             <InputHidden ID="rdFilteredXAxis_rdPnlInstanceID" DefaultValue="" rdIsGlobalFilterValue="True" rdDashboardPanelID="rdPnlInstanceID" DataColumn="--DataColumn--" DataColumnID="--DataColumnID--"/>
           </Division>
           <InputSelectionStyle CursorStyle="url(rdTemplate/rdDashboard/rdHandFilter.cur),auto" />
@@ -450,7 +462,7 @@
           <InputSelectionEvent Type="Point" >
             <Action Type="Javascript" Javascript="rdDbSetGlobalFilterFromChart('rdPnlInstanceID','Date Range','--DataColumnID--');" PopupMenuCaption="Global Filter" />
           </InputSelectionEvent>
-          <Division ID="rdGlobalFilterHiddenValues">
+          <Division ID="rdGlobalFilterHiddenValues_rdPnlInstanceID">
             <InputHidden ID="rdFilteredXAxis_rdPnlInstanceID" DefaultValue="" rdIsGlobalFilterValue="True" rdDashboardPanelID="rdPnlInstanceID" DataColumn="--DataColumn--" DataColumnID="--DataColumnID--" InputSelectionType="Point"/>
             <InputHidden ID="rdFilteredXAxisTimePeriod_rdPnlInstanceID" DefaultValue="--TimePeriod--" />
           </Division>
@@ -461,7 +473,7 @@
           <InputSelectionEvent Type="Range" >
             <Action Type="Javascript" Javascript="rdDbSetGlobalFilterFromChart('rdPnlInstanceID','LinearX','--DataColumnID--');" PopupMenuCaption="Global Filter" />
           </InputSelectionEvent>
-          <Division ID="rdGlobalFilterHiddenValues">
+          <Division ID="rdGlobalFilterHiddenValues_rdPnlInstanceID">
             <InputHidden ID="rdFilteredXAxisMin_rdPnlInstanceID" DefaultValue="" DataColumn="--DataColumn--" DataColumnID="--DataColumnID--" rdIsGlobalFilterValue="True" rdDashboardPanelID="rdPnlInstanceID" />
             <InputHidden ID="rdFilteredXAxisMax_rdPnlInstanceID" DefaultValue="" DataColumn="--DataColumn--" DataColumnID="--DataColumnID--"/>
           </Division>
@@ -472,7 +484,7 @@
           <InputSelectionEvent Type="Point" >
             <Action Type="Javascript" Javascript="rdDbSetGlobalFilterFromChart('rdPnlInstanceID','Date Range','--DataColumnID--');" PopupMenuCaption="Global Filter" />
           </InputSelectionEvent>
-          <Division ID="rdGlobalFilterHiddenValues">
+          <Division ID="rdGlobalFilterHiddenValues_rdPnlInstanceID">
             <InputHidden ID="rdFilteredXAxis_rdPnlInstanceID" DefaultValue="" rdIsGlobalFilterValue="True" rdDashboardPanelID="rdPnlInstanceID" DataColumn="--DataColumn--" DataColumnID="--DataColumnID--" InputSelectionType="Point"/>
             <InputHidden ID="rdFilteredXAxisTimePeriod_rdPnlInstanceID" DefaultValue="--TimePeriod--" />
           </Division>
@@ -483,7 +495,7 @@
           <InputSelectionEvent Type="Range">
             <Action Type="Javascript" Javascript="rdDbSetGlobalFilterFromChart('rdPnlInstanceID','LinearXY','--DataColumnID--','--DataColumnYID--');" PopupMenuCaption="Global Filter" />
           </InputSelectionEvent>
-          <Division ID="rdGlobalFilterHiddenValues">
+          <Division ID="rdGlobalFilterHiddenValues_rdPnlInstanceID">
             <InputHidden ID="rdFilteredXAxisMin_rdPnlInstanceID" DefaultValue="" DataColumn="--DataColumn--" DataColumnID="--DataColumnID--" rdIsGlobalFilterValue="True" rdDashboardPanelID="rdPnlInstanceID" />
             <InputHidden ID="rdFilteredXAxisMax_rdPnlInstanceID" DefaultValue="" DataColumn="--DataColumn--" DataColumnID="--DataColumnID--"/>
             <InputHidden ID="rdFilteredYAxisMin_rdPnlInstanceID" DefaultValue="" DataColumn="--DataColumnY--" DataColumnID="--DataColumnYID--" rdIsGlobalFilterValue="True" rdDashboardPanelID="rdPnlInstanceID" />

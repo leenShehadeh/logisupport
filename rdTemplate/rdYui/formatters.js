@@ -573,11 +573,10 @@ LogiXML.Formatter = {
             for (var i = 0; i < format.length; i++) {
                 if (validFormat.indexOf(format.charAt(i)) == -1)
                     prefix = prefix + format.charAt(i);
-                else
-                    if (negativeSymbol == "") {
+                else if (negativeSymbol == "") {
                         negativeSymbol = format.charAt(i);
-                    }                                          
-                    break;
+                    }
+                else break;
             }
             format = format.substring(prefix.length);
 

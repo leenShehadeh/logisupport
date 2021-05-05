@@ -1,4 +1,5 @@
 var rdNewPanelCnt = 0
+var rdVisibleTopPosition = 0;
 
 YUI.add('dashboard', function (Y) {
     var FreeForm = Y.LogiXML.Dashboard.FreeForm;
@@ -144,6 +145,19 @@ YUI.add('dashboard', function (Y) {
 
                 this.subscribeToWindowResize();
 
+                //REPDEV-23445-Add-Free-Form-Panels-to-Dashboard-without-overlapping-existing-content
+                //initialize auto position panels
+                if (this.get('bIsFreeformLayout')) {
+                    var eleAutoPanels = Y.all('div.rdAutoPositionPanel');
+                    if (eleAutoPanels.size() > 0) {
+                        var self = this;
+                        //settimeout to make sure the DataTable may get real height
+                        setTimeout(function () {
+                            self.initializeAutoPositionPanels(eleAutoPanels);
+                        }, 100);
+                    }
+                }
+
                 if (numberOfPanels < 1)
                     this.rdShowAddDashboardPanels();                
             }  //End init interactivity.
@@ -171,6 +185,10 @@ YUI.add('dashboard', function (Y) {
                         var ngpVisualization = panel.one('logi-visualization,logi-crosstab-table');
                         if (ngpVisualization) {
                                 FreeForm.resizeVisualizationToFitPanel(panel, ngpVisualization);
+                        }
+                        //REPDEV-24538 New breadcrumb menu text ellipsis and resizing support
+                        if (Y.LogiXML.ChartDrillToBreadcrumb && Y.LogiXML.ChartDrillToBreadcrumb.reflowItem) {
+                            panel.all('.rdChartDrillToBreadcrumb').each(Y.LogiXML.ChartDrillToBreadcrumb.reflowItem);
                         }
                     });
                 });
@@ -251,6 +269,37 @@ YUI.add('dashboard', function (Y) {
             }
         },
 
+        initializeAutoPositionPanels: function (elePanels) {
+            var nTop = this.rdCalculateBottomValue();
+            var aIndex = [];
+            var panelMap = {};
+            var eleHidden, autoIndex;
+            elePanels.each(function (ele) {
+                eleHidden = ele.one('input[id^=rdAutoPositionIndex]');
+                autoIndex = eleHidden.get('value');
+                aIndex.push(parseInt(autoIndex));
+                panelMap[autoIndex] = ele;
+            });
+            aIndex.sort();
+            var panel, domNode;
+            for (var i = 0, len = aIndex.length; i < len; i++) {
+                panel = panelMap[aIndex[i]];
+                panel.setStyle('top', FreeForm.rdRoundTo10(nTop + 10) + 'px');
+                panel.removeClass('rdAutoPositionPanel');
+                domNode = panel.getDOMNode();
+                nTop = domNode.offsetTop + domNode.offsetHeight;
+            }
+            //If add multiple panels,scroll to the first one to make it visible
+            if (rdVisibleTopPosition > 0) {
+                var rdDivDashboardpanels = Y.one('#rdDivDashboardpanels');
+                if (rdDivDashboardpanels) {
+                    rdVisibleTopPosition += rdDivDashboardpanels.getDOMNode().offsetTop;
+                }
+                window.scrollTo(0, rdVisibleTopPosition);
+                rdVisibleTopPosition = 0;
+            }
+        },
+
         /* ---Events--- */
 
         DashboardPanel_onDragStart: function (e) {
@@ -289,7 +338,7 @@ YUI.add('dashboard', function (Y) {
                 if (pnlTop < 0) pnlDragged.setStyle('top', '0px');
                 if (pnlLeft < 0) pnlDragged.setStyle('left', '0px');
                 pnlDragged.setStyle('opacity', '.92');
-                FreeForm.rdSaveFreeformLayoutPanelPosition('rdDivDashboardpanels');
+                FreeForm.rdSaveFreeformLayoutPanelPosition('rdDivDashboardpanels', false, true);
             } else {
                 pnlDragged.setStyles({
                     zIndex: 0,
@@ -299,7 +348,10 @@ YUI.add('dashboard', function (Y) {
                 });
                 // we need to resize charts when move the panel to larger/smaller column
                 pnlDragged.all('.rdChartCanvas').each(Y.LogiXML.ChartCanvas.reflowChart);
-
+                //REPDEV-24538 New breadcrumb menu text ellipsis and resizing support
+                if (Y.LogiXML.ChartDrillToBreadcrumb && Y.LogiXML.ChartDrillToBreadcrumb.reflowItem) {
+                    pnlDragged.all('.rdChartDrillToBreadcrumb').each(Y.LogiXML.ChartDrillToBreadcrumb.reflowItem);
+                }
                 if ((pnlDragged.get('id') || "").indexOf('NGPviz') >= 0) {
                     var panelBody = pnlDragged.one('div.panelBody');
                     panelBody.setStyle('width', Y.one('#lastHoveredDropZoneWidth').get('value'));
@@ -484,9 +536,19 @@ YUI.add('dashboard', function (Y) {
             }
             this.rdCalculatezIndexValue();
             if (rdFreeformLayout) {
+                var nTop = this.rdCalculateBottomValue();
                 rdParams += "&rdFreeformLayout=True";
                 rdParams += "&rdNewFreeformLayoutPanel=True";
-                rdParams += "&rdFreeformLayoutStyle=Position:absolute;" + "Left:" + (rdNewPanelCnt * 25) + "px;Top:" + (rdNewPanelCnt * 25) + "px;z-index:" + this.get('zIndex') + ';';
+                //REPDEV-23445-Add-Free-Form-Panels-to-Dashboard-without-overlapping-existing-content
+                //If there are more than one panels added in one time,we should calculate the position in client side.
+                //So we will save some info to the extra bookmark.
+                if (rdNewPanelCnt > 0) {
+                    nTop += 400 * rdNewPanelCnt;
+                } else {
+                    rdVisibleTopPosition = nTop;
+                }
+                rdParams += "&rdAutoPosition=True";
+                rdParams += "&rdFreeformLayoutStyle=Position:absolute;" + "Left:10px;Top:" + (nTop + 10) + "px;z-index:" + this.get('zIndex') + ';';
 
                 if (bIsNgpViz) {
                     rdParams += "height:400px;";
@@ -539,6 +601,32 @@ YUI.add('dashboard', function (Y) {
                     eleDeletePanelButton.className = "rdDashboardHidden"
                 }
             }
+        },
+
+        rdCalculateBottomValue: function () {
+            var elePanelContainer = Y.one('#rdDivDashboardpanels') || Y.one('#rdDivDashboardPanelTable'),
+                aDashboardPanels, i;
+            if (Y.Lang.isNull(elePanelContainer)) {
+                return 0;
+            }
+            aDashboardPanels = elePanelContainer.all('.rdDashboardPanel');
+            var nBottom = 0, offsetTop, offsetHeight;
+            var panel,domNode;
+            for (i = 0; i < aDashboardPanels.size(); i++) {
+                panel = aDashboardPanels.item(i);
+                if (panel.hasClass('rdAutoPositionPanel')) {
+                    continue;
+                }
+                domNode = panel.getDOMNode();
+                offsetTop = domNode.offsetTop;
+                offsetHeight = domNode.offsetHeight;
+                if (i == 0) {
+                    nBottom = offsetTop + offsetHeight;
+                } else {
+                    nBottom = Math.max((offsetTop + offsetHeight), nBottom);
+                }
+            }
+            return nBottom;
         },
 
         rdCalculatezIndexValue: function () {
@@ -609,7 +697,7 @@ YUI.add('dashboard', function (Y) {
             // REPDEV-21788 - Only count the childNodes with IDs - there are empty tr tags that don't count
             var curIdx = -1;
             var targetIdx = Number(nRowNr) - 1;
-            var rows = rdDashboardPanelList.childNodes[0].childNodes;
+            var rows = rdDashboardPanelList.rows;
             for (var i = 0; i < rows.length; i++) {
                 var row = rows[i];
 
@@ -2408,7 +2496,7 @@ YUI.add('dashboard-freeform', function (Y) {
             availableHeight = availableHeight - debugNode.get('offsetWidth');
 
         //REPDEV - 20040 recalculate available height without label captions
-        var lstElements = ['.rdDashboardFilterCaption', '.rdDashboardGlobalFilterCaption'],
+        var lstElements = ['.rdDashboardFilterCaption', '.rdDashboardGlobalFilterCaption', '.rdDrillFilterCaption'],
               elementToExclude;
         for (var i = 0; i < lstElements.length; i++) {
             elementToExclude = panel.one(lstElements[i]);
@@ -2526,7 +2614,7 @@ YUI.add('dashboard-freeform', function (Y) {
 			    // Margin of Panel Body
 			    - parseInt(panelBody.getComputedStyle('marginBottom'), 10);
 
-            var lstElements = ['.rdDashboardFilterCaption', '.rdDashboardGlobalFilterCaption'],
+            var lstElements = ['.rdDashboardFilterCaption', '.rdDashboardGlobalFilterCaption', '.rdDrillFilterCaption'],
                 elementToExclude;
             for (var i = 0; i < lstElements.length; i++) {
                 elementToExclude = panel.one(lstElements[i]);
@@ -2646,7 +2734,7 @@ YUI.add('dashboard-freeform', function (Y) {
 
         FreeForm.unFreezeDashboardContainer();
         dashboardContainer.all('.rdDashboardPanel').setStyle('opacity', .92);
-        FreeForm.rdSaveFreeformLayoutPanelPosition('rdDivDashboardpanels');
+        FreeForm.rdSaveFreeformLayoutPanelPosition('rdDivDashboardpanels', true, null, Y.LogiInfo.Dashboard.prototype.rdGetPanelInstanceId(panel.getDOMNode()));
 
         //Only resize chart if there is only one chart in the panel
         if (panelNode.getData("oneChart")) {
@@ -2769,7 +2857,7 @@ YUI.add('dashboard-freeform', function (Y) {
     };
 
 
-    FreeForm.rdSaveFreeformLayoutPanelPosition = function (sPanelContainerId) {
+    FreeForm.rdSaveFreeformLayoutPanelPosition = function (sPanelContainerId, isResize, isMove, affectedPanelID) {
         FreeForm.rdResizeDashboardContainer();
         var eleDashboardTab = Y.one('#' + sPanelContainerId);
 
@@ -2785,15 +2873,18 @@ YUI.add('dashboard-freeform', function (Y) {
 
         for (i = 0; i < numberofPanels; i++) {
             panel = dashboardPanels.item(i);
-            panelSettings += ',' + Y.LogiInfo.Dashboard.prototype.rdGetPanelInstanceId(panel.getDOMNode());
+            var currentPanelID = Y.LogiInfo.Dashboard.prototype.rdGetPanelInstanceId(panel.getDOMNode());
+            panelSettings += ',' + currentPanelID;
             panelSettings += ':0:STYLE=';
             // Instead of cssText property, manually grab the styles we want to save
             panelSettings += 'z-index:' + panel.getComputedStyle('zIndex') + ';';
             panelSettings += ' position: ' + panel.getComputedStyle('position') + ';';
             panelSettings += ' left: ' + FreeForm.rdRoundTo10(panel.getComputedStyle('left')) + ';';
             panelSettings += ' top: ' + FreeForm.rdRoundTo10(panel.getComputedStyle('top')) + ';';
-            panelSettings += ' width: ' + FreeForm.rdRoundTo10(panel.getComputedStyle('width')) + ';';
-            panelSettings += ' height: ' + FreeForm.rdRoundTo10((parseInt(panel.getComputedStyle('height'), 10))) + 'px' + ';';
+            if (isResize && (affectedPanelID == null || affectedPanelID == currentPanelID)) {
+              panelSettings += ' width: ' + FreeForm.rdRoundTo10(panel.getComputedStyle('width')) + ';';
+              panelSettings += ' height: ' + FreeForm.rdRoundTo10((parseInt(panel.getComputedStyle('height'), 10))) + 'px' + ';';
+            }
         }
 
 
@@ -2811,6 +2902,11 @@ YUI.add('dashboard-freeform', function (Y) {
         var sTabStyle = "Width:" + (regionTab.right - regionTab.left) + 'px';
         sTabStyle += ";Height:" + (regionTab.bottom - regionTab.top) + 'px';
         rdPanelParams += ("&rdDashboardTabStyle=" + sTabStyle);
+        //REPDEV-23445-Add-Free-Form-Panels-to-Dashboard-without-overlapping-existing-content
+        //After moving or resizing,should remove the auto position ability.
+        if (isMove || isResize) {
+            rdPanelParams += "&rdClearAutoPosition=True";
+        }
 
         window.status = "Saving dashboard panel positions.";
         rdAjaxRequestWithFormVars('rdAjaxCommand=rdAjaxNotify&rdNotifyCommand=UpdateDashboardPanelOrder' + rdPanelParams);

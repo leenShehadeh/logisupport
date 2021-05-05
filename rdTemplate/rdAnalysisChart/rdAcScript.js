@@ -259,9 +259,10 @@ function rdAcUpdateControls(bRefresh, sReport, sAcId, bInit) {
 	rdAcSetButtonStyle(sAcId, sCurrChartType, 'Heatmap')
 	rdAcSetButtonStyle(sAcId, sCurrChartType, 'Gauge')
 
-	rdAcLoadDropdowns(sCurrChartType, sAcId)
-        
-	if (bRefresh) {
+    rdAcLoadDropdowns(sCurrChartType, sAcId);
+    if (rdAcLoadDropdowns_changed)
+        rdAcUpdateControls(bRefresh, sReport, sAcId, bInit);
+	else if (bRefresh) {
 	    //fix for extra aggregation and series
 	    var extraAggrDD = document.getElementById("rdAcChartExtraAggrListCompare_" + sAcId);
 	    if (extraAggrDD && extraAggrDD.style.display.toLowerCase() == "none") {
@@ -299,7 +300,6 @@ function rdAcUpdateControls(bRefresh, sReport, sAcId, bInit) {
 	    }
 
 	    rdAjaxRequestWithFormVars(sAjaxUrl, 'false', '', true, null, null, waitCfg);
-
 	}
 }
 
@@ -367,7 +367,10 @@ function rdAcShowAddToDashboard(sAcId) {
     }
 }
 
+var rdAcLoadDropdowns_changed;
 function rdAcLoadDropdowns(sCurrChartType, sAcId) {
+    rdAcLoadDropdowns_changed = false;
+
     //These column dropdowns are set dynamically, client-side, based on chart type and data type.
     if (sCurrChartType == 'Pie' || sCurrChartType == 'Heatmap') {
         rdAcSetDropdownColumns(sAcId, "rdAcChartXLabelColumn", "Text,Boolean", null , "NoGrouping")
@@ -478,7 +481,6 @@ function rdAcLoadDropdowns(sCurrChartType, sAcId) {
     //} else {
        rdAcSetAvailableStacking(sAcId, "rdAcChartCrosstabColumn", "rdAcStacking", sCurrChartType)
     //} 
-
 }
 
 function rdAcSetDropdownColumns(sAcId, sSelectID, sDataTypes, bAddEmptyValue, sExcludeAttribute) {
@@ -543,6 +545,7 @@ function rdAcSetDropdownColumns(sAcId, sSelectID, sDataTypes, bAddEmptyValue, sE
         eleSelect.value = sSelectedValue
         if (!bAddEmptyValue && eleSelect.value == "" && eleSelect.options[0]) {
             eleSelect.value = eleSelect.options[0].value 
+            rdAcLoadDropdowns_changed = true;
         }
     }
 
@@ -904,129 +907,90 @@ function rdModifyTimeSeriesCycleLengthOptions(sColumnGroupByDropdown, sAcId){
     var eleTimeSeriesCycleLengthDropdown = document.getElementById('rdAcTimeSeriesCycle_' + sAcId);
     var sTimeSeriesCycleLength = eleTimeSeriesCycleLengthDropdown.value;
     var sColumnGroupByValue = sColumnGroupByDropdown.value
-    var i; var j = 0; var aColumnGroupByOptions = ['Year', 'Quarter', 'Month', 'Week', 'Day', 'Hour']; 
-    rdResetTimeSeriesCycleLenthDropdown(sAcId);
-    switch(sColumnGroupByValue){
-        case 'FirstDayOfYear':
-         for(i=0;i<7;i++){
-                var eleTimeSeriesCycleLengthOption = eleTimeSeriesCycleLengthDropdown.options[j]
-                if(eleTimeSeriesCycleLengthOption != null){
-                    if(eleTimeSeriesCycleLengthOption.value != ''){
-                        eleTimeSeriesCycleLengthDropdown.remove(j);
-                    }else{
-                        if(eleTimeSeriesCycleLengthOption.value == sTimeSeriesCycleLength){
-                            eleTimeSeriesCycleLengthDropdown.value = sTimeSeriesCycleLength;
-                        }
-                        j += 1;
-                    }
-                }
-            }
-            document.getElementById('rdAcTimeSeriesCycle_' + sAcId).style.display = 'none';
-            document.getElementById('rdAcTimeSeriesCycle_' + sAcId + '-Caption').style.display = 'none';
-            break;
-        case 'FirstDayOfQuarter':
-        case 'FirstDayOfFiscalQuarter':
-        for(i=0;i<7;i++){
-                var eleTimeSeriesCycleLengthOption = eleTimeSeriesCycleLengthDropdown.options[j]
-                if(eleTimeSeriesCycleLengthOption != null){
-                    if(eleTimeSeriesCycleLengthOption.value != '' && eleTimeSeriesCycleLengthOption.value != 'Year'){
-                        eleTimeSeriesCycleLengthDropdown.remove(j);
-                    }else{
-                        if(eleTimeSeriesCycleLengthOption.value == sTimeSeriesCycleLength){
-                            eleTimeSeriesCycleLengthDropdown.value = sTimeSeriesCycleLength;
-                        }
-                        j += 1;
-                    }
-                }
-            }
-            if(document.getElementById('rdAcForecastType_' + sAcId).value == 'TimeSeriesDecomposition'){
-                document.getElementById('rdAcTimeSeriesCycle_' + sAcId).style.display = '';
-                document.getElementById('rdAcTimeSeriesCycle_' + sAcId + '-Caption').style.display = '';
-            }
-            break;
-        case 'FirstDayOfMonth':
-            for(i=0;i<7;i++){
-                var eleTimeSeriesCycleLengthOption = eleTimeSeriesCycleLengthDropdown.options[j]
-                if(eleTimeSeriesCycleLengthOption != null){
-                    if(eleTimeSeriesCycleLengthOption.value != '' && eleTimeSeriesCycleLengthOption.value != 'Year' && eleTimeSeriesCycleLengthOption.value != 'Quarter'){
-                        eleTimeSeriesCycleLengthDropdown.remove(j);
-                    }else{
-                        if(eleTimeSeriesCycleLengthOption.value == sTimeSeriesCycleLength){
-                            eleTimeSeriesCycleLengthDropdown.value = sTimeSeriesCycleLength;
-                        }
-                        j += 1;
-                    }
-                }
-            }
-            if(document.getElementById('rdAcForecastType_' + sAcId).value == 'TimeSeriesDecomposition'){
-                document.getElementById('rdAcTimeSeriesCycle_' + sAcId).style.display = '';
-                document.getElementById('rdAcTimeSeriesCycle_' + sAcId + '-Caption').style.display = '';
-            }
-            break;
-        case 'FirstDayOfWeek':
-            for (i = 0; i < 7; i++) {
-                var eleTimeSeriesCycleLengthOption = eleTimeSeriesCycleLengthDropdown.options[j]
-                if (eleTimeSeriesCycleLengthOption != null) {
-                    if (eleTimeSeriesCycleLengthOption.value != '' && eleTimeSeriesCycleLengthOption.value != 'Year' && eleTimeSeriesCycleLengthOption.value != 'Quarter' && eleTimeSeriesCycleLengthOption.value != 'Month') {
-                        eleTimeSeriesCycleLengthDropdown.remove(j);
-                    } else {
-                        if (eleTimeSeriesCycleLengthOption.value == sTimeSeriesCycleLength) {
-                            eleTimeSeriesCycleLengthDropdown.value = sTimeSeriesCycleLength;
-                        }
-                        j += 1;
-                    }
-                }
-            }
-            if (document.getElementById('rdAcForecastType_' + sAcId).value == 'TimeSeriesDecomposition') {
-                document.getElementById('rdAcTimeSeriesCycle_' + sAcId).style.display = '';
-                document.getElementById('rdAcTimeSeriesCycle_' + sAcId + '-Caption').style.display = '';
-            }
-            break;
-        case 'Date': case 'DateTime':
-            for(i=0;i<7;i++){
-                var eleTimeSeriesCycleLengthOption = eleTimeSeriesCycleLengthDropdown.options[j]
-                if(eleTimeSeriesCycleLengthOption != null){
-                    if(eleTimeSeriesCycleLengthOption.value != '' && eleTimeSeriesCycleLengthOption.value != 'Year' && eleTimeSeriesCycleLengthOption.value != 'Quarter' && eleTimeSeriesCycleLengthOption.value != 'Month' && eleTimeSeriesCycleLengthOption.value != 'Week'){
-                        eleTimeSeriesCycleLengthDropdown.remove(j);
-                    }else{
-                        if(eleTimeSeriesCycleLengthOption.value == sTimeSeriesCycleLength){
-                            eleTimeSeriesCycleLengthDropdown.value = sTimeSeriesCycleLength;
-                        }
-                        j += 1;
-                    }
-                }
-            }
-            if(document.getElementById('rdAcForecastType_' + sAcId).value == 'TimeSeriesDecomposition'){
-                document.getElementById('rdAcTimeSeriesCycle_' + sAcId).style.display = '';
-                document.getElementById('rdAcTimeSeriesCycle_' + sAcId + '-Caption').style.display = '';
-            }
-            break;
+    var i; var j = 0;
+    //var aColumnGroupByOptions = ['Year', 'Quarter', 'Month', 'Week', 'Day', 'Hour']; 
+    
+    rdResetTimeSeriesCycleLenthDropdown(sAcId, sColumnGroupByValue, sTimeSeriesCycleLength);
+
+    if (sColumnGroupByValue == 'FirstDayOfYear') {
+        document.getElementById('rdAcTimeSeriesCycle_' + sAcId).style.display = 'none';
+        document.getElementById('rdAcTimeSeriesCycle_' + sAcId + '-Caption').style.display = 'none';
+    } else if (document.getElementById('rdAcForecastType_' + sAcId).value == 'TimeSeriesDecomposition') {
+        document.getElementById('rdAcTimeSeriesCycle_' + sAcId).style.display = '';
+        document.getElementById('rdAcTimeSeriesCycle_' + sAcId + '-Caption').style.display = '';
     }
-    if(eleTimeSeriesCycleLengthDropdown.value == ''){
-        eleTimeSeriesCycleLengthDropdown.value = eleTimeSeriesCycleLengthDropdown.options[eleTimeSeriesCycleLengthDropdown.options.length -1].value;
-        if(eleTimeSeriesCycleLengthDropdown.options[eleTimeSeriesCycleLengthDropdown.options.length -1].value == "Day"){
-            eleTimeSeriesCycleLengthDropdown.value = '';
-        }        
+
+    if (eleTimeSeriesCycleLengthDropdown.value == '') {
+		if (eleTimeSeriesCycleLengthDropdown.options.length > 0) {
+			var tempValue = eleTimeSeriesCycleLengthDropdown.options[eleTimeSeriesCycleLengthDropdown.options.length - 1].value;
+			if (tempValue != 'Hour') eleTimeSeriesCycleLengthDropdown.value = tempValue;
+		}
     }
 }
 
-function rdResetTimeSeriesCycleLenthDropdown(sAcId){
-    if(document.getElementById('rdAcForecastType_' + sAcId) == null) return;
+function rdResetTimeSeriesCycleLenthDropdown(sAcId) {
+    if (document.getElementById('rdAcForecastType_' + sAcId) == null) return;
     var eleTimeSeriesCycleLengthDropdown = document.getElementById('rdAcTimeSeriesCycle_' + sAcId);
-    var i; var aColumnGroupByOptions = ['', 'Year', 'Quarter', 'Month', 'Week', 'Day']; 
-    if(eleTimeSeriesCycleLengthDropdown.options.length >5) return;
-    for(i=0;i<7;i++){
-        if(eleTimeSeriesCycleLengthDropdown.options.length > 0){
+    var i; var aColumnGroupByOptions = ['', 'Year', 'Quarter', 'Month', 'Week', 'Day'];
+    if (eleTimeSeriesCycleLengthDropdown.options.length > 5) return;
+    for (i = 0; i < 7; i++) {
+        if (eleTimeSeriesCycleLengthDropdown.options.length > 0) {
             eleTimeSeriesCycleLengthDropdown.remove(0);
-        }else{
+        } else {
             break;
         }
     }
-    for(i=0;i<aColumnGroupByOptions.length;i++){
+    for (i = 0; i < aColumnGroupByOptions.length; i++) {
         var eleTimeSeriesOption = document.createElement('option');
         eleTimeSeriesOption.text = aColumnGroupByOptions[i];
         eleTimeSeriesOption.value = aColumnGroupByOptions[i];
         eleTimeSeriesCycleLengthDropdown.add(eleTimeSeriesOption);
+    }
+}
+function rdResetTimeSeriesCycleLenthDropdown(sAcId, sColumnGroupByValue, sCurSelectedValue) {
+    if (document.getElementById('rdAcForecastType_' + sAcId) == null) return;
+    var eleTimeSeriesCycleLengthDropdown = document.getElementById('rdAcTimeSeriesCycle_' + sAcId);
+    var aColumnGroupByOptions = ['', 'Year', 'Quarter', 'Month', 'Week', 'Day', 'Hour']; //HOUR IS FOR 24500
+
+    while (eleTimeSeriesCycleLengthDropdown.options.length > 0)
+        eleTimeSeriesCycleLengthDropdown.options.remove(0);
+
+    var nNewOptCount = 0;
+    switch (sColumnGroupByValue) {
+        case 'FirstDayOfYear':
+            nNewOptCount = 1;// ''
+            break;
+        case 'FirstDayOfQuarter':
+        case 'FirstDayOfFiscalQuarter':
+            nNewOptCount = 2;//'' & Year
+            break;
+        case 'FirstDayOfMonth':
+            nNewOptCount = 3;//'' & Year & Quarter
+            break;
+        case 'FirstDayOfWeek':
+            nNewOptCount = 4;//'' & Year & Quarter & Month
+            break;
+        case 'Date':
+        case 'DateTime':
+            nNewOptCount = 5;//'' & Year & Quarter & Month & Week
+            break;
+        case "FirstMinuteOfHour":
+            nNewOptCount = 6;//'' & Year & Quarter & Month & Week & Day
+            break;
+        case "FirstSecondOfMinute":
+            nNewOptCount = 7;//'' & Year & Quarter & Month & Week & Day & Hour
+            break;
+        default: //No By, SHOW ALL
+            nNewOptCount = aColumnGroupByOptions.length;
+    }
+    for (var i = 0; i < nNewOptCount; i++) {
+        var eleTimeSeriesOption = document.createElement('option');
+        eleTimeSeriesOption.text = aColumnGroupByOptions[i];
+        eleTimeSeriesOption.value = aColumnGroupByOptions[i];
+        eleTimeSeriesCycleLengthDropdown.add(eleTimeSeriesOption);
+
+        if (eleTimeSeriesOption.value == sCurSelectedValue)
+            eleTimeSeriesCycleLengthDropdown.value = sCurSelectedValue;
     }
 }
 
@@ -1037,14 +1001,20 @@ function rdAcGetGroupByDateOperatorDiv(sDataColumn,sAcId){
     }
     var eleDateColumnsForGrouping = document.getElementById('rdAcPickDateColumnsForGrouping_' + sAcId);
     if(eleDateColumnsForGrouping != null){
-        if(eleDateColumnsForGrouping.value.length > 0){
-            if(eleDateColumnsForGrouping.value.indexOf(sDataColumn) > -1){
-                document.getElementById('rdAcChartsDateGroupBy_'+sAcId).style.display = '';
-                document.getElementById('rdAcChartsDateGroupBy_'+sAcId + '-Caption').style.display = '';
-            }
-            else {
-                document.getElementById('rdAcChartsDateGroupBy_'+sAcId).style.display = 'none';
-                document.getElementById('rdAcChartsDateGroupBy_'+sAcId + '-Caption').style.display = 'none';
+        if (eleDateColumnsForGrouping.value.length > 0) {
+			var sEleDateColumnsForGrouping = eleDateColumnsForGrouping.value.replace(",","");
+            sEleDateColumnsForGrouping = sEleDateColumnsForGrouping.replace(",,", ",");
+            aDateColumns = sEleDateColumnsForGrouping.split(",");
+            for (i = 0; i < aDateColumns.length; i++) {
+                if ((aDateColumns[i] == sDataColumn)) {
+                    document.getElementById('rdAcChartsDateGroupBy_' + sAcId).style.display = '';
+                    document.getElementById('rdAcChartsDateGroupBy_' + sAcId + '-Caption').style.display = '';
+                    break;
+                }
+                else {
+                    document.getElementById('rdAcChartsDateGroupBy_' + sAcId).style.display = 'none';
+                    document.getElementById('rdAcChartsDateGroupBy_' + sAcId + '-Caption').style.display = 'none';
+                }
             }
         }
         else {

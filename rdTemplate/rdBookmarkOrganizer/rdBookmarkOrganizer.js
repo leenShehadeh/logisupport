@@ -264,7 +264,7 @@
             
 
         },
-        selectFolder: function (e, sFolderID, sSharedFolderID, sSharedParentFolderID, sSharedFolder) {
+        selectFolder: function (e, sFolderID, sSharedFolderID, sSharedParentFolderID, sSharedFolder, sBookmarkUserName,sBookmarkCollection,sClearMsg) {
 
             if (!sFolderID) {
                 sFolderID = "";
@@ -326,7 +326,7 @@
                     this.selectFolder(null, "", "", "");
             }
 
-            rdAjaxRequestWithFormVars('rdAjaxCommand=rdAjaxNotify&rdNotifyCommand=SelectFolder&rdDataTableID=' + dataTableID + '&FolderID=' + sFolderID + '&SharedFolderID=' + sSharedFolderID + '&SharedParentFolderID=' + sSharedParentFolderID + '&sSharedFolder=' + sSharedFolder + '&rdReport=' + sReportID, 'false', '', null, null, null, null); 
+            rdAjaxRequestWithFormVars('rdAjaxCommand=rdAjaxNotify&rdNotifyCommand=SelectFolder&rdDataTableID=' + dataTableID + '&FolderID=' + sFolderID + '&SharedFolderID=' + sSharedFolderID + '&SharedParentFolderID=' + sSharedParentFolderID + '&sSharedFolder=' + sSharedFolder + '&rdReport=' + sReportID + '&rdBookmarkUserName=' + sBookmarkUserName + '&rdBookmarkCollection=' + sBookmarkCollection + '&rdClearMessages=' + sClearMsg, 'false', '', null, null, null, null); 
 
             rdClearSelectedBookmarks();
         },

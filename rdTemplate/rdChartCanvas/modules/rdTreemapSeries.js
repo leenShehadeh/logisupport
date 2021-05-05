@@ -402,7 +402,8 @@ Array.prototype.flattern = function(fnChildren) {
                 point.setState = parentPrototype.setState;
                 point.onMouseOut = parentPrototype.onMouseOut;
                 point.select = point.selectable ? parentPrototype.select : function (){};
-                point.options = {};
+                //REPDEV-25316,
+                //point.options = {};
 
                 point.series = series;
                 point.half = half;
@@ -492,7 +493,11 @@ Array.prototype.flattern = function(fnChildren) {
             }
 
             chart.cellsGroup = series.cellsGroup = chart.renderer.g().attr({ "class": "highcharts-series highcharts-tracker" }).add(chart.seriesGroup);
-            
+            //REPDEV-25316, the data will be sorted after calculateCells(data) is called, sort options.data accordingly. 
+            var sortFunction = function (a, b) {
+                return b.y - a.y;
+            };
+            options.data.sort(sortFunction)            
             this.calculateCells(data);
         },
 

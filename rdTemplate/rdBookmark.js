@@ -240,9 +240,9 @@ function rdRemoveBookmark(sActionId, sReport, BookmarkCollection, sBookmarkUserN
     rdAjaxRequest("rdAjaxCommand=rdAjaxNotify&rdNotifyCommand=" + sNotifyCommand + sReqParams, null, null, null, callback);
 }
 
-function rdShareBookmarkOrFolder(sActionId, sReport, BookmarkCollection, BookmarkID, FolderID, sharedWith, refreshDTID, bFromInput) {   
-	
-	var isSpanNode = false;
+function rdShareBookmarkOrFolder(sActionId, sReport, BookmarkCollection, BookmarkID, FolderID, sharedWith, refreshDTID, bFromInput, acknowledgeMessage, sharedWithDisp) {   
+
+    var isSpanNode = false;
 	var sRowId = "";
     
     var sReqParams = "rdAjaxCommand=rdAjaxNotify";
@@ -261,7 +261,12 @@ function rdShareBookmarkOrFolder(sActionId, sReport, BookmarkCollection, Bookmar
 	    + "&rdRefreshDTID=" + refreshDTID;
 
     if (bFromInput == "False") {
-	    sReqParams += "&rdSharedCollection=" + sharedWith;
+        sReqParams += "&rdSharedCollection=" + sharedWith;
+        //feature/REPDEV-22683-SSM-Sharing-with-UserID-but-Searching-by-Name
+        //Shared user display name
+        if (sharedWithDisp) {
+            sReqParams += "&rdSharedCollectionDispName=" + sharedWithDisp;
+        }
 
 	} else {
 
