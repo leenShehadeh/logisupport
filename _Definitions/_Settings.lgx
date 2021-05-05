@@ -2,19 +2,16 @@
 <Setting
 	ID="_settings"
 	>
-	<GlobalCSS
-		ID="themeSignal"
-		Theme="Signal"
-	/>
-	<Application
-		Caption="logisupport"
-		DefaultReport="Default"
-	/>
 	<Remark>
-		<Path
-			AppPath="http://localhost:8080/fontss"
+		<GlobalCSS
+			ID="themeSignal"
+			Theme="Signal"
 		/>
 	</Remark>
+	<Application
+		Caption="logisupport"
+		DefaultReport="newReport"
+	/>
 	<Path
 		AppPath="http://localhost:8080/logisupport"
 	/>
@@ -28,7 +25,7 @@
 	<TeamDevelopment/>
 	<Remark>
 		<Globalization
-			JavaFontFolder="C:\Program Files\Apache Software Foundation\Tomcat 8.5\webapps\fontss\_SupportFiles\Fonts"
+			JavaFontFolder="C:\Users\lshehadeh\Desktop\apache-tomcat-9.0.44\webapps\fontss\_SupportFiles\Fonts"
 			RebuildJavaFontFolderPropertiesFile="True"
 			UserCulture="ja"
 		/>
