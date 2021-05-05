@@ -1595,6 +1595,49 @@ LogiXML.createElement = LogiXML.createElement || function (html) {
     return div.removeChild(div.firstChild);
 };
 
+// Y.one("id$=somevalue") doesn't work when the id contains certain special characters
+LogiXML.getElementByIdEnding = LogiXML.getElementByIdEnding || function (ele, ending, tagName) {
+    var isYui;
+
+    if (ele && !(ele instanceof HTMLElement)) {
+        isYui = true;
+        ele = ele._node;
+    }
+    else
+        isYui = false;
+
+    if (!ele || !ending)
+        return null;
+
+    var potentials;
+
+    if (tagName)
+        potentials = ele.getElementsByTagName(tagName);
+    else
+        potentials = ele.childNodes;
+
+    var p = null;
+    for (var i = 0; i < potentials.length; i++) {
+        p = potentials[i];
+
+        if (p.id && p.id.lastIndexOf(ending) === p.id.length - ending.length)
+            break;
+
+        if (!tagName) {
+            p = LogiXML.getElementByIdEnding(p, ending);
+            if (p)
+                break;
+        }
+
+        p = null;
+    }
+
+    if (p && isYui)
+        return Y.one(p);
+
+    return p;
+};
+
 LogiXML.resolveScriptSrc = LogiXML.resolveScriptSrc || function (src) {
     if (src && (src.indexOf("rdTemplate/") == 0 || src.indexOf("/rdTemplate/") >= 0)) {
         version = LogiXML.getUrlParameter(src, "v");
@@ -1606,10 +1649,93 @@ LogiXML.resolveScriptSrc = LogiXML.resolveScriptSrc || function (src) {
 };
 
 // When an ID contains a period, it messes up the YUI selectors.
-// This changes all backslashes to double backslashes, and periods to backslash periods.
+// This changes all periods to backslash periods, and all other special characters to the unicode escape sequence.
 // Use this when calling functions like addHandle("#" + LogiXML.escapeSelector(node.get('id')), ...)
 LogiXML.escapeSelector = function (unescaped) {
-    return unescaped.replace(/\\/g, "\\\\").replace(/\./g, "\\.");
+    // !, ", #, $, %, &, ', (, ), *, +, ,, -, ., /, :, ;, <, =, >, ?, @, [, \, ], ^, `, {, |, }, and ~.
+    return unescaped.replace(/\\/g, "\\00005c").replace(/\./g, "\\.")
+        .replace(/ /g, "\\000020")
+        .replace(/!/g, "\\000021")
+        .replace(/"/g, "\\000022")
+        .replace(/#/g, "\\000023")
+        .replace(/\$/g, "\\000024")
+        .replace(/%/g, "\\000025")
+        .replace(/&/g, "\\000026")
+        .replace(/'/g, "\\000027")
+        .replace(/\(/g, "\\000028")
+        .replace(/\)/g, "\\000029")
+        .replace(/\*/g, "\\00002a")
+        .replace(/\+/g, "\\00002b")
+        .replace(/,/g, "\\00002c")
+        .replace(/-/g, "\\00002d")
+        .replace(/\//g, "\\00002f")
+        .replace(/:/g, "\\00003a")
+        .replace(/;/g, "\\00003b")
+        .replace(/</g, "\\00003c")
+        .replace(/=/g, "\\00003d")
+        .replace(/>/g, "\\00003e")
+        .replace(/\?/g, "\\00003f")
+        .replace(/@/g, "\\000040")
+        .replace(/\[/g, "\\00005b")
+        .replace(/\]/g, "\\00005d")
+        .replace(/\^/g, "\\00005e")
+        .replace(/`/g, "\\000060")
+        .replace(/\{/g, "\\00007b")
+        .replace(/\|/g, "\\00007c")
+        .replace(/\}/g, "\\00007d")
+        .replace(/\~/g, "\\00007e")
+        ;
+};
+
+LogiXML.fixYuiTest = LogiXML.fixYuiTest || function (node) {
+    if (node.__rdOriginalYuiTest)
+        return;
+
+    node.__rdOriginalYuiTest = node.test;
+    node.test = function (s) {
+        if (s && typeof s === "string" && s[0] == "#") {
+            if (Y.one(s) === this)
+                return true;
+        }
+
+        return this.__rdOriginalYuiTest.apply(this, arguments);
+    }.bind(node);
+};
+
+LogiXML.getAncestorByTagName = LogiXML.getAncestorByTagName || function (ele, tagName, includeSelf) {
+    var isYui = false;
+
+    if (ele && !(ele instanceof HTMLElement)) {
+        isYui = true;
+        ele = ele._node;
+    }
+
+    if (!ele || !tagName)
+        return null;
+
+    tagName = tagName.toLowerCase();
+
+    if (includeSelf) {
+        if (ele.tagName.toLowerCase() === tagName) {
+            if (isYui)
+                return Y.one(ele);
+
+            return ele;
+        }
+    }
+
+    ele = ele.parentNode;
+    while (ele && ele.tagName.toLowerCase() != tagName) {
+        ele = ele.parentNode;
+    }
+
+    if (!ele)
+        return null;
+
+    if (isYui)
+        return Y.one(ele);
+
+    return ele;
 };
 
 LogiXML.xmlStringToDoc = LogiXML.xmlStringToDoc || function (xmlString) {
