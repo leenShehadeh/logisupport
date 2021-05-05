@@ -15,6 +15,7 @@
 		/>
 		<Label
 			Caption="@Function.ServerEngineVersion~"
+			HtmlTag="H5"
 		/>
 		<ChartCanvas
 			ID="myChart"
