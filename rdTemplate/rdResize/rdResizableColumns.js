@@ -16,20 +16,6 @@
 
             //Get the resize handle
             var node = Y.one(header.one('td.rdResizeHeaderRow'));
-
-            var yFail = null;
-        
-            if (!Y.Lang.isValue(node)) {
-                var yuiFail = header._node.getElementsByClassName("rdResizeHeaderRow");
-                for (var i = 0; i < yuiFail.length; i++) {
-                    yFail = yuiFail[i];
-                    if (yFail.tagName.toLowerCase() === "td") {
-                        node = Y.one(yFail);
-                        break;
-                    }
-                }
-            }
-
             if (Y.Lang.isValue(node)) {
 
                 var headerHTML = header._stateProxy.outerHTML;
@@ -52,14 +38,13 @@
 
                 //Only show handle when inside the cell. For touch always show.
                 if (LogiXML.features['touch']) {
-                    LogiXML.getElementByIdEnding(node, "-ResizeHandle", "img").setStyle('visibility', 'visible');
+                    node.one('img[id$="-ResizeHandle"]').setStyle('visibility', 'visible');
                 } else {
-                    var th = LogiXML.getAncestorByTagName(node, "TH", true);
-                    th.on('mouseover', function(e) {
-                        LogiXML.getElementByIdEnding(e.currentTarget, "-ResizeHandle", "img").setStyle('visibility', 'visible');
+                    node.ancestor("TH", true).on('mouseover', function(e) {
+                        e.currentTarget.one('img[id$="-ResizeHandle"]').setStyle('visibility', 'visible');
                     });
-                    th.on('mouseout', function(e) {
-                        LogiXML.getElementByIdEnding(e.currentTarget, "-ResizeHandle", "img").setStyle('visibility', 'hidden');
+                    node.ancestor("TH", true).on('mouseout', function(e) {
+                        e.currentTarget.one('img[id$="-ResizeHandle"]').setStyle('visibility', 'hidden');
                     });
                 }
 
@@ -75,14 +60,12 @@
                         moveOnEnd: false
                     });
 
-                    var hndNode = LogiXML.getElementByIdEnding(node, "-ResizeHandle", "img");
+                    var hndNode = node.one('img[id$="-ResizeHandle"]');
                     if (!LogiXML.features['touch'])
                         hndNode.setStyle('visibility', 'hidden');
 
                     dd.addHandle('#' + LogiXML.escapeSelector(hndNode.get('id'))).plug(Y.Plugin.DDWinScroll, { vertical: false, scrollDelay: 5 });;
                     hndNode.setStyle('cursor', 'col-resize');
-
-                    LogiXML.fixYuiTest(hndNode);
 
                     dd.on('drag:start', ResizableColumns._onResizeStart);
                     //This event occurs on all drag events, needed to make sure that we don't make the column too small or go in the wrong direction
@@ -220,7 +203,7 @@
             return;
         }  
 
-        var sourceTableNode = LogiXML.getAncestorByTagName(node, 'table', false);
+        var sourceTableNode = node.ancestor('table', false);
         if (!sourceTableNode) {
             e.halt();
             return;
@@ -291,7 +274,7 @@
         var dragNode = drag.get('dragNode');
         var dragTable = dragNode.one('table');
         var tdNode = drag.get('node');
-        var node = LogiXML.getAncestorByTagName(tdNode, "TH", true);
+        var node = drag.get('node').ancestor("TH", true);
 
         //node.setStyle("borderRight", "3px solid gray");
 
@@ -306,7 +289,7 @@
         var resizeDifference = drag.mouseXY[0] - finishPoint;
         var widthDifference = originalWidth + resizeDifference ; // current width + the difference of the resize + 4 for padding of the td
 
-        var sourceTableNode = LogiXML.getAncestorByTagName(node, 'table', true);
+        var sourceTableNode = node.ancestor('table', true);
         if (!sourceTableNode) {
             e.halt();
             return;
@@ -327,14 +310,14 @@
         var drag = e.target;
         var dragNode = drag.get('dragNode');
         var tdNode = drag.get('node');
-        var thNode = LogiXML.getAncestorByTagName(tdNode, "TH", true);
+        var thNode = drag.get('node').ancestor("TH",true);
 
         var originalWidth = thNode.get('offsetWidth');
         var finishPoint = thNode.getX() + thNode.get('offsetWidth');
         var resizeDifference = drag.mouseXY[0] - finishPoint;
         var widthDifference = originalWidth + resizeDifference;
 
-        var sourceTableNode = LogiXML.getAncestorByTagName(thNode, 'table', true);
+        var sourceTableNode = thNode.ancestor('table', true);
         if (!sourceTableNode) {
             e.halt();
             return;
@@ -369,9 +352,6 @@
         sResize += "," + sourceTableNode.getAttribute('ID') + ":" + tableWidth;
         var sResizableColumnsID = sourceTableDOM.getAttribute("rdResizableColumnsID");
         var sReportID = sourceTableDOM.getAttribute("rdReportID");
-
-        // REPDEV-23732
-        sResize = encodeURIComponent(sResize);
 
         //For Logi: Save the new column sizes back to the server
         if (sourceTableDOM.id == "dtAnalysisGrid") {
