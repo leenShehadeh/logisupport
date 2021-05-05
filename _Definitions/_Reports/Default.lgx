@@ -79,7 +79,6 @@
 					TickLineThickness="0"
 				/>
 				<AxisLabelStyle
-					FontAngle="1"
 					FontColor="#666666"
 					FontFamily="Helvetica, &apos;Arial&apos;, &apos;Segoe UI&apos;, &apos;Avenir Next&apos;, &apos;Avenir&apos;, &apos;Helvetica Neue&apos;, &apos;sans-serif&apos;"
 					FontSize="10"
@@ -167,19 +166,19 @@
 					>
 					<StaticDataRow
 						REGCOUNT="2"
-						REGLABEL="Live"
+						REGLABEL="Live1"
 					/>
 					<StaticDataRow
 						REGCOUNT="1"
-						REGLABEL="On Demand"
+						REGLABEL="On Demand1"
 					/>
 					<StaticDataRow
 						REGCOUNT="5"
-						REGLABEL="None"
+						REGLABEL="None1"
 					/>
 					<StaticDataRow
 						REGCOUNT="4"
-						REGLABEL="Both"
+						REGLABEL="Both1"
 					/>
 				</DataLayer>
 			</Series>
