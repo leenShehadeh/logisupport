@@ -262,7 +262,7 @@
             if (colorString != "")
                 this.customColors = colorString.split(',');
             this.allowAlpha = this.configNode.getAttribute('allowAlpha').toLowerCase() == "true";
-            this.changeHandler = this.configNode.getAttribute('data-changed');
+            this.changeHandler = this.configNode.getAttribute('data-changed').replace(/&quot;/g, '"').replace(/&apos;/g, "'");
         },
         Tile: function (id, parentId, left, right, top, bottom, color) {
             this.rdTileID = id;
@@ -705,7 +705,7 @@
                     eleColorHolder.simulate("change");
                     //eleColorHolder.simulate("blur");
                 }
-                var changeHandler = wrapper.getAttribute('data-changed');
+                var changeHandler = wrapper.getAttribute('data-changed').replace(/&quot;/g, '"').replace(/&apos;/g, "'");
                 if (changeHandler != "") {
                     eval(changeHandler);
                 }

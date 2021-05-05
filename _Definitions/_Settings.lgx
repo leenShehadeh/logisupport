@@ -2,12 +2,10 @@
 <Setting
 	ID="_settings"
 	>
-	<Remark>
-		<GlobalCSS
-			ID="themeSignal"
-			Theme="Signal"
-		/>
-	</Remark>
+	<GlobalCSS
+		ID="themeSignal"
+		Theme="Signal"
+	/>
 	<Application
 		Caption="logisupport"
 		DefaultReport="Default"
@@ -30,7 +28,7 @@
 	<TeamDevelopment/>
 	<Remark>
 		<Globalization
-			JavaFontFolder="C:\Users\lshehadeh\Desktop\apache-tomcat-9.0.44\webapps\fontss\_SupportFiles\Fonts"
+			JavaFontFolder="C:\Program Files\Apache Software Foundation\Tomcat 8.5\webapps\fontss\_SupportFiles\Fonts"
 			RebuildJavaFontFolderPropertiesFile="True"
 			UserCulture="ja"
 		/>

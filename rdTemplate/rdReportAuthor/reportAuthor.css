@@ -423,6 +423,10 @@ background: #ffffff; /* Old browsers */
     padding: 0px;
 }
 
+.rd-settings-popup.popupPanelContainer {
+    position: fixed;
+}
+
 .ThemeMargin {
     margin: 5px;
 }

@@ -446,9 +446,9 @@ Cluster.prototype.addMarker = function (marker) {
   var mCount;
   var mz;
 
-    i = this.getMarkerIndex_(marker);
-    if (i >= 0)
-        return this.mergeMarkerContent_(i, marker.rdPopupContent);
+  if (this.isMarkerAlreadyAdded_(marker)) {
+    return false;
+  }
 
   if (!this.center_) {
     this.center_ = marker.getPosition();
@@ -539,66 +539,24 @@ Cluster.prototype.updateIcon_ = function () {
 };
 
 
-Cluster.prototype.mergeMarkerContent_ = function (idx, content) {
-    if (idx < 0 || idx >= this.markers_.length || !content)
-        return;
-
-    var marker = this.markers_[idx];
-
-    if (!marker.rdPopupContentOriginal)
-        marker.rdPopupContentOriginal = marker.rdPopupContent;
-
-    if (!marker.rdExtraPopupContents)
-        marker.rdExtraPopupContents = [];
-
-    marker.rdPopupContent = marker.rdPopupContentOriginal;
-
-    var bContentAdded = false;
-    for (var i = 0; i < marker.rdExtraPopupContents.length; j++) {
-        var extra = marker.rdExtraPopupContents[j];
-        if (extra == content)
-            bContentAdded = true;
-
-        marker.rdPopupContent += marker.rdExtraPopupContents[j];
-    }
-
-    if (!bContentAdded) {
-        marker.rdExtraPopupContents.push(content);
-        marker.rdPopupContent += content;
-    }
-};
-
 /**
  * Determines if a marker has already been added to the cluster.
  *
  * @param {google.maps.Marker} marker The marker to check.
  * @return {boolean} True if the marker has already been added.
  */
-Cluster.prototype.getMarkerIndex_ = function (marker) {
-    var i;
-    if (this.markers_.indexOf) {
-        i = this.markers_.indexOf(marker);
-        if (i >= 0)
-            return i;
-    }
-
+Cluster.prototype.isMarkerAlreadyAdded_ = function (marker) {
+  var i;
+  if (this.markers_.indexOf) {
+    return this.markers_.indexOf(marker) !== -1;
+  } else {
     for (i = 0; i < this.markers_.length; i++) {
-        var test = this.markers_[i];
-
-        if (marker === test)
-            return i;
-
-        // REPDEV-23617 prevent infinite clustering
-        // Multiple markers on the same exact point should not trigger clustering
-        // With the existence of multiple DIFFERENT markers with the same lat and lng,
-        // merge the contents of the marker popup instead
-        if (marker._latlng && test._latlng
-            && marker._latlng.lat == test._latlng.lat
-            && marker._latlng.lng == test._latlng.lng)
-            return i;
+      if (marker === this.markers_[i]) {
+        return true;
+      }
     }
-
-    return -1;
+  }
+  return false;
 };
 
 

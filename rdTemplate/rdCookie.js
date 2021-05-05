@@ -109,13 +109,13 @@ function rdSaveInputToLocalStorage(sElementId)
 function rdGetInputFromLocalStorage(sID){
     if (rdHasLocalStorage()) {
        var sStoreID = "rdDefaultValue_" + sID
-       //sStoreID = sStoreID.replace(/rdRadioButtonGroup/g, "")
+       sStoreID = sStoreID.replace(/rdRadioButtonGroup/g, "")
         if (localStorage[sStoreID]) {
             var sValue = localStorage[sStoreID]
 		    var ele = document.getElementById(sID)
 		    if (ele) {
 	            if (ele.type == "checkbox") {
-                    if (ele.value == sValue || ele.parentNode.innerText == sValue) { //fix for single checkbox
+	                if (ele.value == sValue) {
 	                    ele.checked = true
 	                }
 	            }else if (ele.id.indexOf("rdRadioButtonGroup") == 0) {
@@ -129,49 +129,21 @@ function rdGetInputFromLocalStorage(sID){
 				            }
 			            }
 		            }
-                }else if(ele.tagName == "SELECT"/* && ele.multiple*/) {
-                    if(ele.multiple){
-                        var sValueDelimiter = ele.getAttribute("rdInputValueDelimiter");
-                        var aValues = sValue.split(sValueDelimiter)
-                        var eleOptions = ele.getElementsByTagName("OPTION")
-                        for (var i = 0; i < eleOptions.length; i++) {
-                            if (aValues.indexOf(eleOptions[i].value) != -1) {
-                                eleOptions[i].selected = true
-                            }
-                        }
-                        if (sValue.length > 1) {
-                            sValue = sValue.substring(0, sValue.length - 1)
-                        }
-                    }else{
-                        var eleOptions = ele.getElementsByTagName("OPTION")
-                        for (var i = 0; i < eleOptions.length; i++) {
-                            if (eleOptions[i].value == sValue) {
-                                eleOptions[i].selected = true
-                                break;
-                            }
-                        }
-                    }
+	            }else if(ele.tagName == "SELECT" && ele.multiple){
+	                var sValueDelimiter = ele.getAttribute("rdInputValueDelimiter");
+	                var aValues = sValue.split(sValueDelimiter)
+	                var eleOptions = ele.getElementsByTagName("OPTION")
+	                for(var i=0; i < eleOptions.length; i++){
+	                    if (aValues.indexOf(eleOptions[i].value)!=-1){
+	                        eleOptions[i].selected = true
+	                    }
+	                }
+	                if(sValue.length > 1){
+	                    sValue = sValue.substring(0,sValue.length-1)
+	                }
 	            } else if(ele.tagName == "DIV" && LogiXML.String.isNotBlank(ele.getAttribute("data-checkboxlist"))) {
 					LogiXML.rd.setInputElementListValue(sID, sValue);
-                } else { 
-                    // REPDEV - 24192, SUPPORT slider
-                    if (ele.getAttribute("rdinputslider") == "True") {
-                        ele.value = sValue
-                        var s2ID = ele.getAttribute("rdSliderID");
-                        if (s2ID) {
-                            var eleSlider = Y.one('#' + s2ID);
-                            if (Y.Lang.isValue(eleSlider)) {
-                                var sliderInstance = eleSlider.getData('sliderInstance');
-                                sliderInstance.setValue2(sValue * sliderInstance.get('decimalfactor'));
-                            }
-                        } else {
-                            var eleSlider = Y.one('#' + sID);
-                            if (Y.Lang.isValue(eleSlider)) {
-                                var sliderInstance = eleSlider.getData('sliderInstance');
-                                sliderInstance.setValue(sValue * sliderInstance.get('decimalfactor'));
-                            }
-                        }
-                    } else
+				} else { 
 		            if (ele.value.length==0) { //Only set when no other default value.
 			            ele.value = sValue
 			        }

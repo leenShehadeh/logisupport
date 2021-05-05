@@ -4,7 +4,6 @@ var LogiXML = LogiXML || {};
 
 LogiXML.rdLeaflet = LogiXML.rdLeaflet || {
     POPUP_CSS: "rdLeafletPopup",
-    POLYGON_COLUMN_ID: "rdCoordinates",
     getProjection: function () {
         var projection = {
             fromLatLngToDivPixel: function (latLng) {
@@ -641,9 +640,6 @@ LogiXML.rdLeaflet = LogiXML.rdLeaflet || {
         var mapId = mapDiv.getAttribute('id');
 
         var replay = function () {
-            if (!L.PolylineUtil)
-                LogiXML.rdLeaflet.addPolylineUtil();
-
             return LogiXML.rdLeaflet.createMap(document.getElementById(mapId));
         };
 
@@ -654,7 +650,7 @@ LogiXML.rdLeaflet = LogiXML.rdLeaflet || {
         var sInitialLatitude = (mapDiv.getAttribute("InitialLatitude") || "").replace(/ /g, '');
         var lat;
         if (sInitialLatitude.length > 0 && !isNaN(sInitialLatitude))
-            lat = parseFloat(sInitialLatitude);
+            lat = parseInt(sInitialLatitude);
         else {
             lat = 0;
             useInitialLatLng = false;
@@ -663,7 +659,7 @@ LogiXML.rdLeaflet = LogiXML.rdLeaflet || {
         var sInitialLongitude = (mapDiv.getAttribute("InitialLongitude") || "").replace(/ /g, '');
         var long;
         if (sInitialLongitude.length > 0 && !isNaN(sInitialLongitude))
-            long = parseFloat(sInitialLongitude)
+            long = parseInt(sInitialLongitude)
         else {
             long = 0;
             useInitialLatLng = false;
@@ -874,10 +870,10 @@ LogiXML.rdLeaflet = LogiXML.rdLeaflet || {
             var eleMapMarkerRow = aMapMarkerRows[i];
             //Validate the marker.
             var lat, lng;
-            if (eleMapMarkerRow.getAttribute(LogiXML.rdLeaflet.POLYGON_COLUMN_ID).length != 0) {
+            if (eleMapMarkerRow.getAttribute("rdCoordinates").length != 0) {
                 //For KML files.
-                lat = parseFloat(eleMapMarkerRow.getAttribute(LogiXML.rdLeaflet.POLYGON_COLUMN_ID).split(",")[1])
-                lng = parseFloat(eleMapMarkerRow.getAttribute(LogiXML.rdLeaflet.POLYGON_COLUMN_ID).split(",")[0])
+                lat = parseFloat(eleMapMarkerRow.getAttribute("rdCoordinates").split(",")[1])
+                lng = parseFloat(eleMapMarkerRow.getAttribute("rdCoordinates").split(",")[0])
             } else {
                 lat = parseFloat(eleMapMarkerRow.getAttribute("Latitude"))
                 lng = parseFloat(eleMapMarkerRow.getAttribute("Longitude"))
@@ -1042,9 +1038,7 @@ LogiXML.rdLeaflet = LogiXML.rdLeaflet || {
 
         for (var i = 0; i < aMapPolygonRows.length; i++) {
             var eleMapPolygonRow = aMapPolygonRows[i]
-            var encodedPoints = eleMapPolygonRow.getAttribute("rdEncodedPoints");
-
-            if (encodedPoints.length > 0) {
+            if (eleMapPolygonRow.getAttribute("rdEncodedPoints").length > 0) {
                 cnt++;
 
                 var options = {
@@ -1069,33 +1063,21 @@ LogiXML.rdLeaflet = LogiXML.rdLeaflet || {
 
                 lastOptions = options;
 
-                var multi = encodedPoints.split("RDMULTIPOLY");
+                var polyLine = L.Polyline.fromEncoded(eleMapPolygonRow.getAttribute("rdEncodedPoints"), options);
+                var polygon = new L.polygon(polyLine.getLatLngs(), options);
+                //console.log(polyLine.options);
+
+                polygon.addTo(map);
+
                 var elePolygon = document.getElementById(eleMapPolygonRow.getAttribute("rdPolygonID"));
-                var polyContent;
 
                 if (elePolygon && elePolygon.getAttribute("rdActionMapMarkerInfo") == "true") {
                     eleMapPolygonRow.setAttribute("data-rdPopupContent", elePolygon.innerHTML);
-                    polyContent = elePolygon.innerHTML;
+                    polygon.rdPopupContent = elePolygon.innerHTML;
                     elePolygon.innerHTML = "";
                 }
                 else
-                    polyContent = eleMapPolygonRow.getAttribute("data-rdPopupContent");
-
-                var latlngs = [];
-
-                for (var j = 0; j < multi.length; j++) {
-                    var encPts = multi[j];
-
-                    if (encPts) {
-                        var polyline = L.Polyline.fromEncoded(encPts, options);
-                        latlngs.push(polyline.getLatLngs());
-                    }
-                }
-
-                var polygon = new L.polygon(latlngs, options);
-                polygon.addTo(map);
-
-                polygon.rdPopupContent = polyContent;
+                    polygon.rdPopupContent = eleMapPolygonRow.getAttribute("data-rdPopupContent");
 
                 LogiXML.rdLeaflet.createLeafletMarkerAction(map, polygon, elePolygon);
 
@@ -1151,34 +1133,17 @@ LogiXML.rdLeaflet = LogiXML.rdLeaflet || {
 
                 lastOptions = options;
 
-                var multi = encodedPoints.split("RDMULTIPOLY");
+                var polyLine = L.Polyline.fromEncoded(encodedPoints, options);
+                polyLine.addTo(map, options);
                 var elePolyline = document.getElementById(eleMapPolylineRow.getAttribute("rdPolylineID"));
-                var polyContent;
 
                 if (elePolyline && elePolyline.getAttribute("rdActionMapMarkerInfo") == "true") {
                     eleMapPolylineRow.setAttribute("data-rdPopupContent", elePolyline.innerHTML);
-                    polyContent = elePolyline.innerHTML;
+                    polyLine.rdPopupContent = elePolyline.innerHTML;
                     elePolyline.innerHTML = "";
                 }
                 else
-                    polyContent = eleMapPolylineRow.getAttribute("data-rdPopupContent");
-
-                var latlngs = [];
-                var polyLine;
-
-                for (var j = 0; j < multi.length; j++) {
-                    var encPts = multi[j];
-
-                    if (encPts) {
-                        polyLine = L.Polyline.fromEncoded(encPts, options);
-                        latlngs.push(polyLine.getLatLngs());
-                    }
-                }
-
-                polyLine = new L.polyline(latlngs, options);
-                polyLine.addTo(map, options);
-
-                polyLine.rdPopupContent = polyContent;
+                    polyLine.rdPopupContent = eleMapPolylineRow.getAttribute("data-rdPopupContent");
 
                 LogiXML.rdLeaflet.createLeafletMarkerAction(map, polyLine, elePolyline)
 
@@ -1480,8 +1445,7 @@ LogiXML.rdLeaflet = LogiXML.rdLeaflet || {
                 map.closePopup();
             }
 
-            if (this.div_ || this._icon)
-                map.removeLayer(this);
+            map.removeLayer(this);
         }
 
         this._map = null;

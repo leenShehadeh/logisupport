@@ -147,8 +147,6 @@
                         <StaticDataRow GroupByDateOperator="Month" GroupByDateOperatorValue="FirstDayOfMonth" GroupByDateLabel="Month" Format="yyyy MMM" />
                         <StaticDataRow GroupByDateOperator="Week" GroupByDateOperatorValue="FirstDayOfWeek" GroupByDateLabel="Week" Format="Short Date" />
                         <StaticDataRow GroupByDateOperator="Day" GroupByDateOperatorValue="Date" GroupByDateLabel="Day" Format="Short Date" />
-                        <StaticDataRow GroupByDateOperator="Hour" GroupByDateOperatorValue="FirstMinuteOfHour" GroupByDateLabel="Hour" Format="yyyy/MM/dd HH:00" />
-                        <StaticDataRow GroupByDateOperator="Minute" GroupByDateOperatorValue="FirstSecondOfMinute" GroupByDateLabel="Minute" Format="yyyy/MM/dd HH:mm" />
 											</DataLayer>
 											<EventHandler DhtmlEvent="onchange">
 												<Action Type="Javascript" ID="actSelectXDataColumn" Javascript="rdModifyTimeSeriesCycleLengthOptions(this,'rdAcID');rdAcUpdateControls(false,'@Request.rdReport~','rdAcID');" />
@@ -370,7 +368,6 @@
 												<StaticDataRow TimeSeriesCycleName="Month" TimeSeriesCycleValue="Month" />
 												<StaticDataRow TimeSeriesCycleName="Week" TimeSeriesCycleValue="Week" />
 												<StaticDataRow TimeSeriesCycleName="Day" TimeSeriesCycleValue="Day" />
-                        <StaticDataRow TimeSeriesCycleName="Hour" TimeSeriesCycleValue="Hour" />
 											</DataLayer>
 											<EventHandler DhtmlEvent="onchange">
 												<Action Type="Javascript" ID="actSelectTimeSeries" Javascript="rdAcUpdateControls(false,'@Request.rdReport~','rdAcID');" />

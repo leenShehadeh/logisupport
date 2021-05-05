@@ -85,10 +85,9 @@
 				.add();
             chart.noDataLabel.align(extend(chart.noDataLabel.getBBox(), noDataOptions.position), false, 'plotBox');
             
-            if (chart.xAxis) {
-                for (var i = 0; i < chart.xAxis.length; i++) {
-                    chart.xAxis[i].destroy();
-                }
+            if (chart.xAxis && chart.xAxis.length > 0) {
+                var axis = chart.xAxis[0];
+                axis.destroy();
                 /*if (axis.labelGroup) {
                     axis.labelGroup.css({ display: 'none' });
                 }
@@ -101,10 +100,9 @@
                 */
             }
 
-            if (chart.yAxis) {
-                for (var i = 0; i < chart.yAxis.length; i++) {
-                    chart.yAxis[i].destroy();
-                }
+            if (chart.yAxis && chart.yAxis.length > 0) {
+                var axis = chart.yAxis[0];
+                axis.destroy();
                 /*if (axis.labelGroup) {
                     axis.labelGroup.css({ display: 'none' });
                 }

@@ -25,7 +25,6 @@
 	/>
 	<LocalData>
 		<DataLayer
-			EnableSettings="True"
 			ID="dlConnections"
 			Type="XMLFile"
 			XMLFile="@Function.AppPhysicalPath~/_Definitions/_Settings.lgx"

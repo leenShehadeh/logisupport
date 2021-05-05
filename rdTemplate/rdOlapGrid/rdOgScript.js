@@ -129,15 +129,11 @@ function rdOgBatchCommand(sCommand, sOgTableID, sDimension, sGUID) {
 }
 
 function rdFindLink(sGUID) {
-    var cA = document.getElementsByTagName("A");
-    for (var i = 0; i < cA.length; i++) {
-        var sClick = cA[i].getAttribute("onclick"); //REPDEV-24322
-        if (sClick != undefined) {
-            sClick = sClick.replace("\x22", /"/g);
-            if (sClick.indexOf(sGUID) != -1) {
-                return cA[i];
-            }
-        }
+	var cA = document.getElementsByTagName("A")
+	for (var i = 0; i < cA.length; i++) {
+		if (cA[i].href.indexOf(sGUID) != -1) {
+			return cA[i]
+		}
 	}
 }
 
@@ -186,7 +182,7 @@ function rdOgBatchDrilldownAll(sDrilldownDimension) {
 		hiddenDrilldownPosition.name="rdDrilldownPosition"
 		hiddenDrilldownPosition.value=sDrilldownPositions
 		document.rdForm.appendChild(hiddenDrilldownPosition);
-		SubmitForm(sUrl, '', 'false', '', false); // 15289 - REPDEV-24135
+		SubmitForm(sUrl,'','false','',true) // 15289
 	}
 }
 

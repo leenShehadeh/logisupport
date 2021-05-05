@@ -70,7 +70,7 @@
 									<Label Caption="Subject " ID="lblSubject" For="EmailSubject"/>
 								</Column>
 								<Column ColSpan="2">
-									<InputText ID="EmailSubject" InputSize="50" Tooltip="Enter the subject." DefaultValue="@Local.rdSubject~">
+									<InputText ID="EmailSubject" InputSize="60" Tooltip="Enter the subject." DefaultValue="@Local.rdSubject~">
 										<Validation Type="Required" ErrorMsg="Enter the Subject." Class="ThemeErrorText" />
 									</InputText>
 								</Column>

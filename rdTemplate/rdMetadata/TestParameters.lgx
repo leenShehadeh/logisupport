@@ -47,7 +47,7 @@ For example: “SELECT * FROM Orders WHERE EmployeeID = &apos;@"
 			>
 			<DataLayer
 				Type="XMLFile"
-				XMLFile="@Shared.MetadataUrl~"
+				XMLFile="@Function.AppPhysicalPath~\_Metadata\@Request.MetadataID~.lgx"
 				>
 				<XslTransform
 					XSLFile="@Function.AppPhysicalPath~\rdTemplate\rdMetadata\TestParametersTransform.xslt"

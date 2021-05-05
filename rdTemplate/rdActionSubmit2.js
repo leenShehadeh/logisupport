@@ -1,9 +1,9 @@
 
-function SubmitForm(sPage, sTarget, bValidate, sConfirm, bFromOnClick, waitCfg, form) {
+function SubmitForm(sPage, sTarget, bValidate, sConfirm, bFromOnClick, waitCfg) {
     
     if (typeof bSubmitFormAfterAjax != 'undefined'){ //10041
         if (bSubmitFormAfterAjax){ 
-            setTimeout(function(){SubmitForm(sPage, sTarget, bValidate, sConfirm, bFromOnClick, waitCfg, form)},1000)
+            setTimeout(function(){SubmitForm(sPage, sTarget, bValidate, sConfirm, bFromOnClick, waitCfg)},1000)
             return
         }
     }
@@ -14,11 +14,10 @@ function SubmitForm(sPage, sTarget, bValidate, sConfirm, bFromOnClick, waitCfg, 
 //            rdRemoveDashboardParams()
 //        }
 //    }
-
-    // REPDEV-24135 No longer needed due to correct encoding to begin with
-    //if (bFromOnClick) {
-    //    sPage = decodeURIComponent(sPage)  //onClick and other eventes need decoding.#6549
-    //}
+    
+    if (bFromOnClick) {
+        sPage = decodeURIComponent(sPage)  //onClick and other eventes need decoding.#6549
+    }
 
 	if (bValidate == "true") {
 		var sErrorMsg = rdValidateForm()
@@ -34,16 +33,13 @@ function SubmitForm(sPage, sTarget, bValidate, sConfirm, bFromOnClick, waitCfg, 
 				return
 			}
 		}
-    }
-
-    if (!form)
-        form = document.rdForm;
+	}
 	
-    sOldTarget = form.target;
+    sOldTarget = document.rdForm.target;
     if (sTarget)
-        form.target = sTarget;
+        document.rdForm.target = sTarget;
     else
-        form.target = '_self';
+        document.rdForm.target = '_self';
 
 	if (!document.createHiddenInput) {
 	    document.createHiddenInput = function (id, value, name) {
@@ -58,10 +54,10 @@ function SubmitForm(sPage, sTarget, bValidate, sConfirm, bFromOnClick, waitCfg, 
 
 	var aCheckBoxIds = new Array(0);
 	var aCheckBoxListIds = new Array(0);
-	var iOrigCount = form.elements.length;
+	var iOrigCount = document.rdForm.elements.length;
     //23862 23865
-   for (var i = 0; i < form.elements.length; i++) {
-	    var ele = form.elements[i]
+   for (var i = 0; i < document.rdForm.elements.length; i++) {
+	    var ele = document.rdForm.elements[i]
         
 	    if (!ele.type) {
 	        continue;  //Not an input element.
@@ -81,68 +77,45 @@ function SubmitForm(sPage, sTarget, bValidate, sConfirm, bFromOnClick, waitCfg, 
 	        if ((ele.checked == false) && ele.getAttribute("rdUncheckedValue") != "rdNotSent") {
 	            var hiddenCBV = document.createHiddenInput(ele.name, ele.getAttribute("rdUncheckedValue"));
 	            hiddenCBV.setAttribute("rdHiddenCreatedForUncheckedValue","true");
-	            form.appendChild(hiddenCBV);
+	            document.rdForm.appendChild(hiddenCBV);
 	        }
 	    }
 
 	    else {
 	         if(ele.type == 'text')
 	            rdFixupInputs(ele);
-	    }	    
+	    }
+
+	    
 	}
 	
     var eleRemoved = new Array(0)
 	
 	if (sPage.search("rdRequestForwarding=Form") == -1) {
 	    //No RequestForwarding, remove all RequestForwarding elements.
-        for (var i = form.elements.length - 1; i >= 0; i--) {
-            var eleForward = form.elements.item(i);
-            if (eleForward.id == "rdHiddenRequestForwarding")
-                eleRemoved.push(eleForward.parentNode.removeChild(eleForward));
-            else if (eleForward.id == "rdRnd")
-                eleForward.parentNode.removeChild(eleForward);
+		while (true) {
+			var eleForward = document.getElementById("rdHiddenRequestForwarding")
+			if (eleForward) {
+				eleRemoved.push(eleForward.parentNode.removeChild(eleForward))
+			} else {
+				break
+			}
 		}
 	} else {
 	    //RequestForwarding, remove elements that are in the request.
-
-        //Remove hidden forwarding elements that have other input elements.
-        var eleTextAreas = form.getElementsByTagName("TEXTAREA")
-
-        var eleKeeped = new Map();
-        var eleInputs = form.getElementsByTagName("INPUT")
-        for (var i = eleInputs.length - 1; i > -1; i--) {
+        var eleInputs = document.getElementsByTagName("INPUT")
+        for (var i=eleInputs.length-1; i > -1; i--) {
             var eleInput = eleInputs[i]
-            if (eleInput.type == "hidden") {
-                if (eleInput.id == "rdRnd")
-                    eleInput.parentNode.removeChild(eleInput);
-                else {
-                    //Is the var in the request string?
-                    if (sPage.indexOf("?" + eleInput.name + "=") != -1 || sPage.indexOf("&" + eleInput.name + "=") != -1) {
-                        eleRemoved.push(eleInput.parentNode.removeChild(eleInput))
-                    }
-                }
-            }
-            if (eleInput.id == "rdHiddenRequestForwarding") {
-                if (!eleKeeped.has(eleInput.name)) {
-                    eleKeeped.set(eleInput.name, eleInput);
-                } else {
-                    try {
-                        eleRemoved.push(eleInput.parentNode.removeChild(eleInput));
-                    } catch (e) { }
+            if (eleInput.type=="hidden") {
+                //Is the var in the request string?
+                if (sPage.indexOf("?" + eleInput.name + "=")!=-1 || sPage.indexOf("&" + eleInput.name + "=")!=-1) {
+                    eleRemoved.push(eleInput.parentNode.removeChild(eleInput))
                 }
             }
         }
-
-        for (var k = eleTextAreas.length - 1; k > -1; k--) {
-            if (eleKeeped.has(eleTextAreas[k].name)) {
-                eleRemoved.push(eleInput.parentNode.removeChild(eleKeeped.get(eleTextAreas[k].name)));  //Remove the hidden forwarding element.
-                eleKeeped.set(eleTextAreas[k].name, eleTextAreas[k])
-            }
-        }
-
-        //old code before resolving performace bottleneck
-
-        /*for (var i=eleInputs.length-1; i > -1; i--) {
+        //Remove hidden forwarding elements that have other input elements.
+        var eleTextAreas = document.getElementsByTagName("TEXTAREA")
+        for (var i=eleInputs.length-1; i > -1; i--) {
             var eleInput = eleInputs[i]
             if (eleInput.id=="rdHiddenRequestForwarding") {
                 //Is there another input element with the same id?  (Can't use getElementById())
@@ -161,7 +134,7 @@ function SubmitForm(sPage, sTarget, bValidate, sConfirm, bFromOnClick, waitCfg, 
                     }
                 }
             }
-        }*/
+        }
 
 	}
 	
@@ -183,27 +156,21 @@ function SubmitForm(sPage, sTarget, bValidate, sConfirm, bFromOnClick, waitCfg, 
     //    };
     //}
 
-    var hdnFileGuid = null;
+    var hiddenRnd = document.createHiddenInput("rdRnd", Math.floor(Math.random() * 100000));
+    document.rdForm.appendChild(hiddenRnd);
 
     if (sPage.indexOf("javascript:")==0) {
 	    sPage = sPage.replace("javascript:","") //11673
 	    eval(sPage)
-	} else {
-        if (LogiXML.getUrlParameter(location.href, "rdForWizard") == "True")
-            sPage = LogiXML.setUrlParameter(sPage, "rdForWizard", "True");
-
-        form.action = sPage;
-
-        var hiddenRnd = document.createHiddenInput("rdRnd", Math.floor(Math.random() * 100000));
-        form.appendChild(hiddenRnd);
-
+	}else{		
+			
+        document.rdForm.action = sPage;
+        
         if (Y && Y.LogiInfo && Y.LogiInfo.AnalysisGrid && Y.LogiInfo.AnalysisGrid.rdSaveColumnWidths)
             Y.LogiInfo.AnalysisGrid.rdSaveColumnWidths();
 
-        var isSelf = LogiXML.isSelfTarget(form.target);
-
-        // Show wait panel unless targetting a different window.
-        if (waitCfg != null && isSelf) {
+        //Show wait panel
+        if (waitCfg != null && sTarget != "new") {
             //25599
             if (Y.Cookie && Y.Cookie.exists('rdFileDownloadComplete')) {
                 Y.Cookie.remove('rdFileDownloadComplete', { path: '/' });
@@ -211,42 +178,27 @@ function SubmitForm(sPage, sTarget, bValidate, sConfirm, bFromOnClick, waitCfg, 
 
             LogiXML.WaitPanel.pageWaitPanel.readyWait();
 
-            var fileGuid = null;
-            if (!document.cookie) {
-                var rdExportFilename = LogiXML.getUrlParameter(form.action, "rdExportFilename");
-                if (rdExportFilename) {
-                    fileGuid = LogiXML.getGuid();
-                    hdnFileGuid = document.createHiddenInput("rdExportFileGuid", fileGuid);
-                    form.appendChild(hdnFileGuid);
-                }
-            }
-
             // if a wait panel is already showing, call this now instead of in a timeout in case the message needs to change
             if (document.getElementById("rdWait")) {
-                LogiXML.WaitPanel.pageWaitPanel.showWaitPanel(waitCfg, fileGuid);
+                LogiXML.WaitPanel.pageWaitPanel.showWaitPanel(waitCfg);
             } else {
                 setTimeout(function () {
-                    LogiXML.WaitPanel.pageWaitPanel.showWaitPanel(this.waitCfg, this.fileGuid);
-                }.bind({
-                    waitCfg: waitCfg,
-                    fileGuid: fileGuid
-                }), 500);
+                    LogiXML.WaitPanel.pageWaitPanel.showWaitPanel(this)
+                }.bind(waitCfg), 500);
             }
         }
 
-        form.submit();
+        document.rdForm.submit();
 	}
 	
 	//Put the form back, in case we went to another target window.
-	form.target = sOldTarget
+	document.rdForm.target = sOldTarget
 
 	//Replace the removed elements.
 	while (eleRemoved.length!=0){
-	   form.appendChild(eleRemoved.pop())
+	    document.rdForm.appendChild(eleRemoved.pop())
 	}
 
-    if (hdnFileGuid)
-        form.removeChild(hdnFileGuid);
 }
 
 //23865 23862
@@ -304,18 +256,10 @@ function NavigateLink2(sUrl, sTarget, bValidate, sFeatures, sConfirm, waitCfg, b
 		}
 	}
 	
-    // REPDEV-24153 - support encoded links by decoding them prior to navigation
-    if (sUrl.toLowerCase().match(/^[a-z]+%3a/)) {
-        try {
-            sUrl = decodeURIComponent(sUrl);
-        } catch(e) {
-        }
-    }
-
 	if (sUrl.toLowerCase().indexOf("javascript:") == 0) {
 		//Not submitting the page, run javascript instead.  This works with Target.Link.
         
-        var nUrl = sUrl.substr(11);
+        var nUrl = LG_EscapeParamApostrophe(sUrl.substr(11));
         //console.log(sUrl.substr(11));
         //console.log(nUrl);
 
@@ -335,6 +279,15 @@ function NavigateLink2(sUrl, sTarget, bValidate, sFeatures, sConfirm, waitCfg, b
 	//Replace # with %23.
 	sUrl = replacePoundPatten(sUrl);
     
+	if (bFromOnClick) {
+	    try {
+	        var sClickedUrl = decodeURIComponent(sUrl)  //If called by a DHTML event, the url needs to be decoded.INFOGO385
+	        sUrl = sClickedUrl;
+	    } catch (err) {
+
+	    }
+	}
+
 	if (typeof rdSaveInputCookies != 'undefined'){rdSaveInputCookies()}
 	if (typeof rdSaveInputsToLocalStorage != 'undefined'){rdSaveInputsToLocalStorage()}
 
@@ -349,12 +302,7 @@ function NavigateLink2(sUrl, sTarget, bValidate, sFeatures, sConfirm, waitCfg, b
 		    window.showModalDialog(sUrl, '', sFeatures);
 			break;
 		case '':
-			// REPDEV-24799 Studio Browser does not like assigning here, but works in a timeout
-			setTimeout(function () {
-				window.location.assign(this.sUrl);
-			}.bind({
-				sUrl: sUrl
-			}), 1);
+			window.location.assign(sUrl);
 			
 			rdShowWaitPanel(waitCfg);
 
@@ -450,21 +398,27 @@ function NavigateCrawlerFriendly(sUrl, sTarget, bValidate, sFeatures, sConfirm) 
 
 function rdBodyPressEnter(sID, e) {
 	var ele = document.getElementById(sID);
-    if (ele) { //RD24999 - non button elements like labels etc don't use href anymore.
-        // was focus on the input with default action already, dont process it twice...RD19810
-        if (!e) e = window.event; //RD20948
-        var target = e.target || e.srcElement;
-        var id,
-            bclick = true;
-        if (target) {
-            id = target.id;
-        }
-        if (id && (id == sID)) {
-            bclick = false;
-        }
-        if (bclick == true) {
-            ele.click();
-        }	       
+	if (ele) {
+	    if (ele.tagName == "INPUT") {  //button
+	        // was focus on the input with default action already, dont process it twice...RD19810
+	        if (!e) e = window.event; //RD20948
+	        var target = e.target || e.srcElement;
+	        var id ,
+	          bclick = true;
+	        if (target) {
+	            id = target.id;
+	        }
+	        if (id && (id == sID)) {
+	            bclick = false;
+	        }
+	        if (bclick == true) {
+	            ele.click();
+	        }	       
+	        //button
+	    } else {
+	        //span or image
+		    window.location.assign(ele.parentNode.href);
+	    }
 	}
 }
 

@@ -26,8 +26,9 @@ function rdAfUpdateUi(bRefresh, sAfId, sCommand, sFilterID, sAddFilterColumnID, 
             //Not full-page refresh, get the Ajax RefreshElement href.
             eleUpdateAction = document.getElementById("actAfDesignSaveAjax_" + sAfId)
         }
-
-        var sRefreshScript = LogiXML.getScriptFromLink(eleUpdateAction, false);
+        var sRefreshScript = eleUpdateAction.href
+        sRefreshScript = sRefreshScript.replace("javascript:", "")
+        sRefreshScript = decodeURIComponent(sRefreshScript)
         sRefreshScript = sRefreshScript.replace("rdAfCommand=&", "rdAfCommand=" + sCommand + "&")
 
         //For adding dashboard global filters.
@@ -58,9 +59,8 @@ function rdAfUpdateUi(bRefresh, sAfId, sCommand, sFilterID, sAddFilterColumnID, 
             sRefreshScript = sRefreshScript.replace("&rdAfCommand", sAddParams + "&rdAfCommand")
             }
         }
-
-        if (sFilterID)
-            sRefreshScript = sRefreshScript.replace("rdAfFilterID=&", "rdAfFilterID=" + sFilterID + "&")
+        
+        sRefreshScript = sRefreshScript.replace("rdAfFilterID=&", "rdAfFilterID=" + sFilterID + "&")
 
         if (sCommand == "Design" || sCommand == "Simple") {
             //Refresh just the filter controls.
@@ -399,14 +399,6 @@ function rdAfUpdateEditControls(sAfId) {
                 ShowElement(null, "divPickBoolean_" + sAfId, "Show");
             } else {  //Text
                 aAllowedOperators = ["=", "<", "<=", ">=", ">", "<>", "In List", "Not In List", "Starts With", "Contains", "Not Starts With", "Not Contains"]
-                //REPDEV-24492 Add support for LIKE and NOT LIKE Filters in Analysis Filter
-                var eleSqlSyntax = document.getElementById("rdAfDataSourceSyntax_" + sAfId)
-                var sqlSyntax = eleSqlSyntax.value
-                //only SqlServer, MySql, Oracle, PostgreSQL support "[not] like" operation.
-                if (sqlSyntax == "SqlServer" || sqlSyntax == "MySql" || sqlSyntax == "Oracle" || sqlSyntax == "PostgreSQL") {
-                    aAllowedOperators.push("Like")
-                    aAllowedOperators.push("Not Like")
-                }
             }
 
             for (var i = eleFilterOperator.options.length - 1; i > -1; i--) {
@@ -688,131 +680,106 @@ function rdAfRestoreClickedFilter(sAfId, sFilterColumnID, sFilterOperator, sFilt
 
     //Dates
     if (sColumnDataType.indexOf("Date")!=-1) {
-        if (sFilterOperator == "In List" || sFilterOperator == "Not In List") {
-            var input = document.getElementById("rdAfFilterValueDelimited_" + sAfId);
-            var delimiter = input.getAttribute("data-delimiter");
-            var qualifier = input.getAttribute("data-qualifier");
-            var escape = input.getAttribute("data-escape");
-            var entries = LogiXML.rdInputTextDelimiter.getEntries(sFilterValue, delimiter, qualifier, escape, false);
 
-            setTimeout(function () {
-                var input = document.getElementById(this.inputID);
-                LogiXML.rdInputTextDelimiter.setEntries(input, this.entries);
-            }.bind({
-                inputID: input.id,
-                entries: entries.slice()
-            }), 100);
+        var sInputElementValue = sFilterValue.split('|')[0];
+        var bCompCol = (sInputElementValue.indexOf('[') >= 0);
+
+        if (bCompCol) {
+            document.getElementById("rdAfFilterStartDate_" + sAfId).value = '';
+            document.getElementById("rdAfFilterStartDateColumn_" + sAfId).value = sInputElementValue;
         } else {
-            var sInputElementValue = sFilterValue.split('|')[0];
-            var bCompCol = (sInputElementValue.indexOf('[') >= 0);
+            //Format ?
+            if (sFormat) {
+                var dInputElementValue = new Date(sInputElementValue)
+                sInputElementValue = LogiXML.HighchartsFormatters.format(dInputElementValue, sFormat)
+            }
+            document.getElementById("rdAfFilterStartDate_" + sAfId).value = sInputElementValue;
+        }
+
+        document.getElementById("rdAfFilterValue_" + sAfId).value = sInputElementValue; 
+        document.getElementById("rdAfFilterEndDate_" + sAfId).value = '';
+        document.getElementById("rdAfFilterEndDateColumn_" + sAfId).value = '';
+
+        if(sDateType){
+            var sDateTypeOperator = sDateType.split(',')[0];
+            if(sDateTypeOperator)
+                document.getElementById("rdAfSlidingTimeStartDateFilterOperator_" + sAfId).value = sDateTypeOperator;
+        }
+        else{
+            document.getElementById("rdAfSlidingTimeStartDateFilterOperator_" + sAfId).value = "Specific Date";
+        }
+
+
+        if(sSlidingDateName){
+            var sSlidingDateValue = sSlidingDateName.split(',')[0];
+            if(sSlidingDateValue)
+                document.getElementById("rdAfSlidingTimeStartDateFilterOperatorOptions_" + sAfId).value = sSlidingDateValue;
+        }  
+        if(sFilterValue.split('|')[1]){
+            sInputElementValue = sFilterValue.split('|')[1];
+
+            var bCompCol = sInputElementValue.indexOf('[') >= 0;
 
             if (bCompCol) {
-                document.getElementById("rdAfFilterStartDate_" + sAfId).value = '';
-                document.getElementById("rdAfFilterStartDateColumn_" + sAfId).value = sInputElementValue;
+                document.getElementById("rdAfFilterEndDateColumn_" + sAfId).value = sInputElementValue;
+                document.getElementById("rdAfFilterEndDate_" + sAfId).value = "";
             } else {
                 //Format ?
                 if (sFormat) {
                     var dInputElementValue = new Date(sInputElementValue)
                     sInputElementValue = LogiXML.HighchartsFormatters.format(dInputElementValue, sFormat)
                 }
-                document.getElementById("rdAfFilterStartDate_" + sAfId).value = sInputElementValue;
+                document.getElementById("rdAfFilterEndDate_" + sAfId).value = sInputElementValue;
+                document.getElementById("rdAfFilterEndDateColumn_" + sAfId).value = "";
             }
 
-            document.getElementById("rdAfFilterValue_" + sAfId).value = sInputElementValue;
-            document.getElementById("rdAfFilterEndDate_" + sAfId).value = '';
-            document.getElementById("rdAfFilterEndDateColumn_" + sAfId).value = '';
-
-            if (sDateType) {
-                var sDateTypeOperator = sDateType.split(',')[0];
-                if (sDateTypeOperator)
-                    document.getElementById("rdAfSlidingTimeStartDateFilterOperator_" + sAfId).value = sDateTypeOperator;
+            if(sDateType){
+                var sDateTypeOperator = sDateType.split(',')[1];
+                if(sDateTypeOperator)
+                    document.getElementById("rdAfSlidingTimeEndDateFilterOperator_" + sAfId).value = sDateTypeOperator;
             }
-            else {
-                document.getElementById("rdAfSlidingTimeStartDateFilterOperator_" + sAfId).value = "Specific Date";
+            else{
+                document.getElementById("rdAfSlidingTimeEndDateFilterOperator_" + sAfId).value = "Specific Date";
             }
 
+            if(sSlidingDateName){
+                var sSlidingDateValue = sSlidingDateName.split(',')[1];
+                if(sSlidingDateValue)
+                    document.getElementById("rdAfSlidingTimeEndDateFilterOperatorOptions_" + sAfId).value = sSlidingDateValue;
+            } 
+        }
 
-            if (sSlidingDateName) {
-                var sSlidingDateValue = sSlidingDateName.split(',')[0];
-                if (sSlidingDateValue)
-                    document.getElementById("rdAfSlidingTimeStartDateFilterOperatorOptions_" + sAfId).value = sSlidingDateValue;
+        //Split the start time from the date.
+        if (document.getElementById("rdAfSlidingTimeStartDateFilterOperator_" + sAfId).value == "Specific Date") {
+            var aDateAndTime = document.getElementById("rdAfFilterStartDate_" + sAfId).value.split(' ')
+            if (aDateAndTime.length == 1) {
+                aDateAndTime = document.getElementById("rdAfFilterStartDate_" + sAfId).value.split('T')
             }
-            if (sFilterValue.split('|')[1]) {
-                sInputElementValue = sFilterValue.split('|')[1];
-
-                var bCompCol = sInputElementValue.indexOf('[') >= 0;
-
-                if (bCompCol) {
-                    document.getElementById("rdAfFilterEndDateColumn_" + sAfId).value = sInputElementValue;
-                    document.getElementById("rdAfFilterEndDate_" + sAfId).value = "";
-                } else {
-                    //Format ?
-                    if (sFormat) {
-                        var dInputElementValue = new Date(sInputElementValue)
-                        sInputElementValue = LogiXML.HighchartsFormatters.format(dInputElementValue, sFormat)
-                    }
-                    document.getElementById("rdAfFilterEndDate_" + sAfId).value = sInputElementValue;
-                    document.getElementById("rdAfFilterEndDateColumn_" + sAfId).value = "";
+            if (aDateAndTime.length > 1) {
+                var sTime = aDateAndTime[aDateAndTime.length - 1]
+                if (sTime == "00:00:00") {
+                    sTime = ""
                 }
-
-                if (sDateType) {
-                    var sDateTypeOperator = sDateType.split(',')[1];
-                    if (sDateTypeOperator)
-                        document.getElementById("rdAfSlidingTimeEndDateFilterOperator_" + sAfId).value = sDateTypeOperator;
-                }
-                else {
-                    document.getElementById("rdAfSlidingTimeEndDateFilterOperator_" + sAfId).value = "Specific Date";
-                }
-
-                if (sSlidingDateName) {
-                    var sSlidingDateValue = sSlidingDateName.split(',')[1];
-                    if (sSlidingDateValue)
-                        document.getElementById("rdAfSlidingTimeEndDateFilterOperatorOptions_" + sAfId).value = sSlidingDateValue;
+                if (sTime.indexOf(":") != 0) {
+                    document.getElementById("rdAfFilterStartDate_" + sAfId).value = aDateAndTime[0]
+                    document.getElementById("rdAfFilterStartTime_" + sAfId).value = sTime
                 }
             }
-
-            //Split the start time from the date.
-            if (document.getElementById("rdAfSlidingTimeStartDateFilterOperator_" + sAfId).value == "Specific Date") {
-                var aDateAndTime = sFilterValue.split(' ');
-                if (aDateAndTime.length == 1) {
-                    aDateAndTime = sFilterValue.split('T')
-                }
-
-                var clearTime = false;
-
-                if (aDateAndTime.length > 1) {
-                    var sTime = aDateAndTime[aDateAndTime.length - 1]
-                    if (sTime == "00:00:00") {
-                        sTime = ""
-                    }
-                    if (sTime.indexOf(":") != 0) {
-                        document.getElementById("rdAfFilterStartDate_" + sAfId).value = aDateAndTime[0]
-                        document.getElementById("rdAfFilterStartTime_" + sAfId).value = sTime
-                    } else {
-                        clearTime = true;
-                    }
-                } else {
-                    clearTime = true;
-                }
-
-                if (clearTime)
-                    document.getElementById("rdAfFilterStartTime_" + sAfId).value = "";
+        }
+        //Split the end time from the date.
+        if (document.getElementById("rdAfSlidingTimeEndDateFilterOperator_" + sAfId).value == "Specific Date") {
+            var aDateAndTime = document.getElementById("rdAfFilterEndDate_" + sAfId).value.split(' ')
+            if (aDateAndTime.length == 1) {
+                aDateAndTime = document.getElementById("rdAfFilterEndDate_" + sAfId).value.split('T')
             }
-            //Split the end time from the date.
-            if (document.getElementById("rdAfSlidingTimeEndDateFilterOperator_" + sAfId).value == "Specific Date") {
-                var aDateAndTime = document.getElementById("rdAfFilterEndDate_" + sAfId).value.split(' ')
-                if (aDateAndTime.length == 1) {
-                    aDateAndTime = document.getElementById("rdAfFilterEndDate_" + sAfId).value.split('T')
+            if (aDateAndTime.length > 1) {
+                var sTime = aDateAndTime[aDateAndTime.length - 1]
+                if (sTime == "00:00:00") {
+                    sTime = ""
                 }
-                if (aDateAndTime.length > 1) {
-                    var sTime = aDateAndTime[aDateAndTime.length - 1]
-                    if (sTime == "00:00:00") {
-                        sTime = ""
-                    }
-                    if (sTime.indexOf(":") != 0) {
-                        document.getElementById("rdAfFilterEndDate_" + sAfId).value = aDateAndTime[0]
-                        document.getElementById("rdAfFilterEndTime_" + sAfId).value = sTime
-                    }
+                if (sTime.indexOf(":") != 0) {
+                    document.getElementById("rdAfFilterEndDate_" + sAfId).value = aDateAndTime[0]
+                    document.getElementById("rdAfFilterEndTime_" + sAfId).value = sTime
                 }
             }
         }

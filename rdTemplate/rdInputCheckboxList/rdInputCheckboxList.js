@@ -69,19 +69,6 @@ YUI.add('rd-inputCheckList-plugin', function (Y) {
 		        //attach events
 		        this._docClickHandle = Y.one("document").on("mousedown", function (e) {this.onDocMouseDown(e); }, this);
 		        this._dropDownHandle = this._dropDownHandler.on("click", function (e) {this.togglePopup(e); }, this);
-				//attach QuickFilter
-				this._isIE = this.detectIE();//The IE is Slower on Dom-Operattion. 
-				this._sLastDropdownQF ='';
-				this._dataTRNode = Y.one("#" + this._id + "_container>tbody>tr")._node;
-				var colspan = this._container.getAttribute("data-columns");
-				var yInput = Y.Node.create('<input type="text" id="' + this._id + '_QK"/>');
-				//Note: We may need to check the input status (for example, the user is using Microsoft Pinyin to input Chinese).
-				//But now(20200526),on my test(, oncompositionstart and oncompositionend is no effect.
-				this._dropdownQFHandler = yInput.on("keyup", function (e) { this.quickFilterForDropdown(e); }, this);
-				this._dropdownInput = yInput._node;
-				var searchTR = Y.Node.create('<tr><td colspan="' + colspan + '"></td></tr>');
-				searchTR._node.firstChild.appendChild(this._dropdownInput);
-				this._dataTRNode.parentNode.insertBefore(searchTR._node, this._dataTRNode);
 		    }
 		    if (this._checkAllIsVisible === true) {
 		        this._handleCheckAll = this._checkAllBtn.on("click", function (e) {this.onCheckAllClicked(e); }, this);
@@ -137,8 +124,6 @@ YUI.add('rd-inputCheckList-plugin', function (Y) {
 		    //Element was hidden during loading, make it visible now
             document.getElementById(this._id + "_hideWaiting").style.display = "";
 
-			if (this._isDropdown && this._container.ancestor(".rdResponsiveColumn"))
-				this._dropDownHandler.setStyle("max-width", "100%");
         },
 
         //clean up on destruction
@@ -158,10 +143,6 @@ YUI.add('rd-inputCheckList-plugin', function (Y) {
 			if (this._docClickHandle) {
 				this._docClickHandle.detach();
 				this._docClickHandle = null;
-			}
-			if (this._dropdownQFHandler) {
-				this._dropdownQFHandler.detach()
-				this._dropdownQFHandler = null;
 			}
 			if (this._onchangeHandlers) {
 			    var i = 0; length = this._onchangeHandlers.length;
@@ -227,9 +208,6 @@ YUI.add('rd-inputCheckList-plugin', function (Y) {
 		        positionValue = "fixed";
 		    }
 
-            // IE - otherwise the fixed !important will prevent changing it
-            this._container._node.style.removeProperty("position");
-
 		    this._container.setStyles({
 			    position: positionValue || "absolute",
 			    display: "block"
@@ -237,13 +215,6 @@ YUI.add('rd-inputCheckList-plugin', function (Y) {
 			this._container.setXY(popupPosition);
 			this.setPopupWidth();
 			this._isOpen = true;
-
-			var ancestorResponsiveColumn = this._container.ancestor(".rdResponsiveColumn");
-			if (ancestorResponsiveColumn && ancestorResponsiveColumn.ancestor('.rd-gridsystem-scrollbar-horizontalScrollbar'))
-				ancestorResponsiveColumn.setStyle("overflow-x", "visible");
-
-            if (window.resizeCurrentIframe)
-                resizeCurrentIframe();
 		},
 		close: function (e) {
 			if (this._isOpen) {
@@ -256,10 +227,6 @@ YUI.add('rd-inputCheckList-plugin', function (Y) {
 			    if (dashboardPanel && dashboardPanel.getDOMNode()) {
 			        dashboardPanel.getDOMNode().style['opacity'] = dashboardPanel.getDOMNode().getAttribute('oldOpacity');
 			    }
-			    if (this._sLastDropdownQF.length > 0 ) {
-					this._dropdownInput.value = '';
-					this.actualQuickFilterForDropDown('');
-				}
 			}
 		},
 		togglePopup: function () {
@@ -322,35 +289,18 @@ YUI.add('rd-inputCheckList-plugin', function (Y) {
 
 		    var items = inputListElement.all(checkboxSelector);
 		    if (items && items.size() > 0) {
-				for (var i = 0; i < items.size(); i++) {
-					if (items.item(i).get("checked")) {
-						if (!(items.item(i).hasAttribute("rdExpanded"))) {
-							var inp = items.item(i);
-							var sVal = inp.get("value");
-
-							if (selectedVals.indexOf(sVal) == -1) {
-								selectedVals.push(sVal)
-							}
-						}
-					}
-				}
-
-				var inpDelimiter = this._container.getAttribute("data-delimiter"); //RD20193
-				if (!inpDelimiter) {
-					inpDelimiter = this._container.getAttribute("rdinputvaluedelimiter");
-					if (!inpDelimiter) {
-						inpDelimiter = ",";
-					}
-				}
-
-				if (LogiXML.rdInputTextDelimiter) {
-					var qualifier = this._container.getAttribute("data-qualifier");
-					var escape = this._container.getAttribute("data-escape");
-
-					tempSelectedValues = LogiXML.rdInputTextDelimiter.delimit(selectedVals, inpDelimiter, qualifier, escape);
-				}
-				else
-					tempSelectedValues = selectedVals.join(inpDelimiter);
+		        for (var i = 0; i < items.size() ; i++) {
+		            if (items.item(i).get("checked")) {	
+		                if (!(items.item(i).hasAttribute("rdExpanded"))) {
+		                    var sVal = items.item(i).get("value");
+		                    if (selectedVals.indexOf(sVal) == -1) {
+		                        selectedVals.push(sVal)
+		                    }
+		                }		                
+		            }
+		        }		        
+		        var inpDelimiter = this._container.getAttribute("rdinputvaluedelimiter"); //RD20193
+		        tempSelectedValues = selectedVals.join(inpDelimiter);
 		    }
 		    hiddenCaptionField.set("value", tempSelectedValues);
 		},
@@ -657,151 +607,7 @@ YUI.add('rd-inputCheckList-plugin', function (Y) {
 		    return false;
 		},
         //***End Hierarchical Functions
-		//QuickFilter
-		detectIE: function () {
-			/*WHY need detectIE?
-			There are so many Dom operation when do QF,
-			in test result, In IE, 'RemoveChild(_dataTrNode)'is almost 20 times slower than set 'Display:none', 
-			But in other browser, 'removechild' is more quick. */
 
-			//MORE INPORTANT:
-			//in Dom-operator, old-Edge is same as IE, so we need check if it is Old-Edge
-			//Maybe a few years later, no one's using the old-Egde, we can change to LogiXML.isIE directly
-			if ( LogiXML.isIE() ) {
-				return true;
-			} else {
-				// var ua = window.navigator.userAgent;
-				// IE 10
-				// ua = 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)';
-				// IE 11
-				// ua = 'Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko';
-				// Edge 12 (Spartan) [Old Edge]
-				/* ua = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko)
-					Chrome/39.0.2171.71 Safari/537.36 Edge/12.0';*/
-				//Edge 83 [New Edge, built since 2020-01]
-				/*"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)
-					Chrome/83.0.4103.61 Safari/537.36 Edg/83.0.478.37"*/
-				return window.navigator.userAgent.indexOf('Edge/') > 0;
-			}
-		},
-		actualQuickFilterForDropDown: function (sqText) {
-			var inputsSize = this._inputs.size();
-			if (inputsSize == 0) return;
-			if (this._sLastDropdownQF == sqText) return;//QUICK RETURN
-
-			var isDoFilter = (sqText.length > 0); //FALSE->CLEAR QF
-			var trFlagValue;
-			if (this._isIE) {'In IE, set display:none is faster than removechild.'
-				trFlagValue = this._dataTRNode.getAttribute('display');
-				this._dataTRNode.setAttribute('display', 'none');
-			} else {
-				trFlagValue = this._dataTRNode.parentNode;
-				trFlagValue.removeChild(this._dataTRNode);
-			}
-			try {
-				var datacolumns = this._container.getAttribute("data-columns");
-				//checkall;
-				var theHideObj;
-				if (isDoFilter) {
-					if (this._checkAllBtn && this._checkAllIsVisible) {
-						this._checkAllBtn.get('parentNode').hide();//Label yNode
-						this._checkAllIsVisible = false;
-						this._sLastDropdownQF = sqText;
-					}
-				} else {
-					if (this._checkAllBtn && (this._checkAllIsVisible == false)
-						&& this._multiple && inputsSize > 1) {
-						this._checkAllBtn.get('parentNode').show();//Label yNode
-						this._checkAllIsVisible = true;
-					}
-				}
-				if (datacolumns == 1) {
-					if (isDoFilter) {
-						for (var iIdx = 0; iIdx < inputsSize; iIdx++) {
-							var curInput = this._inputs.item(iIdx);							
-							var curInputParent = curInput.get('parentNode');//Label yNode
-							var orgValue = curInput._node.nextElementSibling.textContent; //SPAN Node
-							if (orgValue.toLowerCase().indexOf(sqText) >= 0) {
-								if (curInputParent._isHidden()) curInputParent.show();
-							} else {
-								if (!curInputParent._isHidden()) curInputParent.hide();
-								this._sLastDropdownQF = sqText;
-							}
-						}
-					} else {
-						for (var iIdx = 0; iIdx < inputsSize; iIdx++) {
-							var curInput = this._inputs.item(iIdx);
-							var curInputParent = curInput.get('parentNode');//Label yNode
-							if (curInputParent._isHidden()) curInputParent.show();
-						}
-					}
-				} else {
-					var tdNode = this._dataTRNode.firstElementChild;
-					for (var iIdx = 0, cIdx = 0; iIdx < inputsSize; iIdx++) {
-						var curInput = this._inputs.item(iIdx);
-						var curParent = curInput.get('parentNode');//Label yNode
-						var bIsToVisible = false;
-						if (isDoFilter) {
-							var orgValue = curInput._node.nextElementSibling.textContent;//SPAN Node
-							bIsToVisible = (orgValue.toLowerCase().indexOf(sqText) >= 0);
-						} else {
-							bIsToVisible = true;
-						}
-						if (bIsToVisible) {
-							if (curParent._isHidden()) curParent.show();
-							var curLiNode = curParent._node.parentNode;
-							curLiNode.parentNode.removeChild(curLiNode);
-							tdNode.firstElementChild.appendChild(curLiNode);
-							cIdx++;
-							if (cIdx < datacolumns) {
-								tdNode = tdNode.nextElementSibling;
-							} else {
-								cIdx = 0;
-								tdNode = this._dataTRNode.firstElementChild;
-							}
-						} else {
-							if (!curParent._isHidden()) curParent.hide();
-						}
-					}					
-					this._sLastDropdownQF = sqText;
-				}
-				if ( ! isDoFilter) this._sLastDropdownQF = '';//FIX
-			} finally {
-				if (this._isIE) {
-					if (trFlagValue)
-						this._dataTRNode.setAttribute('display', trFlagValue);
-					else
-						this._dataTRNode.removeAttribute('display');
-				} else {
-					trFlagValue.appendChild(this._dataTRNode);
-				}
-			}
-		},
-		quickFilterForDropdown: function (e) {
-			var inputValue = this._dropdownInput.value;
-			var inpDelimiter = this._container.getAttribute("data-delimiter"); //RD20193
-			if (!inpDelimiter) {
-				inpDelimiter = this._container.getAttribute("rdinputvaluedelimiter");
-				if (!inpDelimiter) {
-					inpDelimiter = ",";
-				}
-			}
-			var entries;
-			if (LogiXML.rdInputTextDelimiter) {
-				var qualifier = this._container.getAttribute("data-qualifier");
-				var escape = this._container.getAttribute("data-escape");
-				entries = LogiXML.rdInputTextDelimiter.getEntries(inputValue, inpDelimiter, qualifier, escape);
-			}
-			else {
-				var selected = text.split(/\s*,\s*/);
-				entries = selected[selected.length - 1];
-			}
-			if (entries.length > 0 )
-				this.actualQuickFilterForDropDown(entries[0].toLowerCase());
-			else
-				this.actualQuickFilterForDropDown('');
-		},
-		
         onCheckboxClicked: function (e) {
 			var checked = [];
 			var id = this._id;
@@ -834,37 +640,18 @@ YUI.add('rd-inputCheckList-plugin', function (Y) {
 			    }
 
                 //Save checkbox state
-				var checkboxStateHidden = document.getElementById(id + "_rdCheckboxState");
-				if (checkboxStateHidden) {
-					var stateString = "";
-
-					if (LogiXML.rdInputTextDelimiter) {
-						var stateArray = [];
-
-						this._inputs.each(function (node) {
-							var nodeValue = node._node.value;
-
-							stateArray.push(node._node.getAttribute("rdLevel")
-								+ ":"
-								+ node._node.getAttribute("rdChecked")
-								+ ":" + nodeValue);
-						});
-
-						stateString = LogiXML.rdInputTextDelimiter.delimit(stateArray, ",", '"', "\\");
-					} else {
-						//Remove any possible commas from node value so it doesn't mess up string formatting
-						this._inputs.each(function (node) {
-							stateString += node._node.getAttribute("rdLevel")
-								+ ":"
-								+ node._node.getAttribute("rdChecked")
-								+ ":"
-								+ node._node.value.replace(/,/g, "")
-								+ ",";
-						});
-					}
-
-					checkboxStateHidden.value = stateString;
-				}
+			    var checkboxStateHidden = document.getElementById(id + "_rdCheckboxState");
+			    if (checkboxStateHidden) {
+			        var stateArray = checkboxStateHidden.value.split(",");
+			        var stateString = "";
+                    //Remove any possible commas from node value so it doesn't mess up string formatting
+			        
+			        this._inputs.each(function (node) {
+			            var nodeValue = node._node.value.replace(/,/g, "");
+			            stateString += node._node.getAttribute("rdLevel") + ":" + node._node.getAttribute("rdChecked") + ":" + nodeValue + ",";
+			        });
+			        checkboxStateHidden.value = stateString;
+			    }
 			}
 
 			if (this._isHierarchical) {
@@ -1003,65 +790,23 @@ LogiXML.rd.setInputElementListValue = function (elementId, sValue) {
 	if (!Y.Lang.isValue(listContainer)) {
 		return;
 	}
-
 	var sValueDelimiter = listContainer.getAttribute("rdInputValueDelimiter");
-	if (!sValueDelimiter)
-		sValueDelimiter = ",";
-
-	var aValues;
-
-	if (LogiXML.rdInputTextDelimiter)
-		aValues = LogiXML.rdInputTextDelimiter.getEntries(sValue, sValueDelimiter, '"', "\\", false);
-	else {
-		sValue = sValue.replace(", ", ",");
-		aValues = sValue.split(sValueDelimiter);
-	}
-
+	sValue = sValue.replace(", ",",")
+	var aValues = sValue.split(sValueDelimiter);
 	var listItems = listContainer.all('[id^=' + elementId + '_rdList]');
 	var i, listLength = listItems.size(), listItemType = "";
-	var bOneUnchecked = false;
-	var bOneChecked = false;
-	var cb;
-
 	for (i = 0; i < listLength; i++) {
 	    listItemType = listItems.item(i).getAttribute('type');
 		switch (listItemType) {
-			case "checkbox":
-				cb = listItems.item(i);
-				var val;
-
-				var spn = cb._node && cb._node.tagName == "SPAN" ? cb._node.nextElementSibling : null;
-				if (spn)
-					val = spn.innerText;
-				else
-					val = cb.get("value");
-
-				if (Y.Array.indexOf(aValues, val) != -1) {
-					cb.set('checked', true);
-					bOneChecked = true;
-				} else {
-					cb.set('checked', false);
-					bOneUnchecked = true;
-				}
-
-				break;
+		case "checkbox":
+		    if (Y.Array.indexOf(aValues, listItems.item(i).get('value')) != -1) {
+		        listItems.item(i).set('checked', true);
+		    } else {
+		        listItems.item(i).set('checked', false);
+		    }
+			break;
 		}
 	}
-
-	var checkallItems = listContainer.all('[id^=' + elementId + '_check_all]');
-	if (checkallItems) {
-		var listLength = checkallItems.size();
-		if (listLength > 0) {
-			var listItemType = checkallItems.item(0).getAttribute('type');
-			if ("checkbox" == listItemType) {
-				cb = checkallItems.item(0);
-				cb.set('checked', bOneChecked && !bOneUnchecked);
-			}
-		}
-	}
-
-	if (listContainer.rdInputCheckList && listContainer.rdInputCheckList.populateHiddenInput)
-		listContainer.rdInputCheckList.populateHiddenInput(elementId);
 };
 
 

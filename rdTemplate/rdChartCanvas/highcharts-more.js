@@ -81,18 +81,6 @@ extend(Pane.prototype, {
 				firstAxis.options.plotBands.unshift(config);
 			});
 		}
-
-        if (options.scale) {
-            var scaleNum,
-            percentIndex = options.scale.indexOf("%");
-            if (percentIndex > -1) {
-                scaleNum = parseInt(options.scale.substring(0, percentIndex));
-                scaleNum = scaleNum / 100.0;
-            } else {
-                scaleNum = parseFloat(options.scale);
-            }
-            pane.options.scale = scaleNum;
-        }
 	},
 	
 	/**
@@ -238,7 +226,6 @@ var radialAxisMixin = {
 		
 		// Set the center array
 		this.center = this.pane.center = CenteredSeriesMixin.getCenter.call(this.pane);
-        this.center[2] *= this.pane.options.scale ? this.pane.options.scale : 1;
 	},
 
 
@@ -319,7 +306,6 @@ var radialAxisMixin = {
 			// Set the center array
 			this.center = this.pane.center = Highcharts.CenteredSeriesMixin.getCenter.call(this.pane);
 
-            this.center[2] *= this.pane.options.scale ? this.pane.options.scale : 1;
 			// The sector is used in Axis.translate to compute the translation of reversed axis points (#2570)
 			if (this.isCircular) {
 				this.sector = this.endAngleRad - this.startAngleRad;	

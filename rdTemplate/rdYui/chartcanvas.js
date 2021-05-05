@@ -305,9 +305,6 @@ YUI.add('chartCanvas', function (Y) {
             this._clearHandlers();
             this.chart.destroy();
             configNode.setData(TRIGGER, null);
-            if (this.drillInfoBreadcrumb) {
-                this.drillInfoBreadcrumb.destroy();
-            }
         },
 
         _clearHandlers: function() {
@@ -644,15 +641,13 @@ YUI.add('chartCanvas', function (Y) {
 
 
             var drillBackButton = Y.one(this.chart.container).one('#customButton_DrillBack');
-            if (drillBackButton) {
-                if (this.drillTo && this.drillTo.drilledToStates && this.drillTo.drilledToStates.length > 0) {
-                    if (LogiXML.features['touch']) {
-                        drillBackButton.setStyle('display', '');
-                    }
-                    drillBackButton.setAttribute("collapsed-button", "False");
-                } else if (drillBackButton) {
-                    drillBackButton.setAttribute('collapsed-button', 'True');
+            if (this.drillTo && this.drillTo.drilledToStates && this.drillTo.drilledToStates.length > 0) {
+                if (LogiXML.features['touch']) {
+                    drillBackButton.setStyle('display', '');
                 }
+                drillBackButton.setAttribute("collapsed-button", "False");
+            } else if (drillBackButton) {
+                drillBackButton.setAttribute('collapsed-button', 'True');
             }
 
             var zoomButton = Y.one(this.chart.container).one('#customButton_ResetZoom');
@@ -979,10 +974,10 @@ YUI.add('chartCanvas', function (Y) {
 
         pointsSelected: function (series, fireEvent, e, force) {
             var selection = series.options.selection,
-                valueElement, eleDelimited,
+                valueElement,
                 changeFlagElement,
                 oldValue,
-                newValue, delimitedValue;
+                newValue;
 
             if (!selection) {
                 return;
@@ -1023,18 +1018,14 @@ YUI.add('chartCanvas', function (Y) {
                     var valuesArray = values[valuesString];
                     valueElement = this.getOrCreateInputElement(valuesString);
                     oldValue = this.getInputElementValue(valueElement);
-
-                    newValue = valuesArray.join(',');
+                    //TODO do encoding for commas in values
+                    if (LogiXML.rdInputTextDelimiter)
+                        newValue = LogiXML.rdInputTextDelimiter.delimit(valuesArray, ",", '"', "\\");
+                    else
+                        newValue = valuesArray.join(',');
 
                     if (oldValue != newValue) {
                         this.setInputElementValue(valueElement, newValue);
-
-                        if (LogiXML.rdInputTextDelimiter) {
-                            eleDelimited = this.getOrCreateInputElement("rdCSV_" + valuesString)
-                            delimitedValue = LogiXML.rdInputTextDelimiter.delimit(valuesArray, ",", '"', "\\");
-                            this.setInputElementValue(eleDelimited, delimitedValue);
-                        }
-
                         if (selection.changeFlagElementId && selection.changeFlagElementId.length > 0) {
                             changeFlagElement = this.getOrCreateInputElement(selection.changeFlagElementId);
                             changeFlagElement.set('value', 'True');
@@ -1051,6 +1042,7 @@ YUI.add('chartCanvas', function (Y) {
                             }
                             //}
                         }
+
                     }
                 }
             } else {
@@ -1059,22 +1051,19 @@ YUI.add('chartCanvas', function (Y) {
                     valueElement = this.getOrCreateInputElement(selection.valueElementId);
                     oldValue = this.getInputElementValue(valueElement);
 
-                    newValue = values.join(",");
+                    if (LogiXML.rdInputTextDelimiter)
+                        newValue = LogiXML.rdInputTextDelimiter.delimit(values, ",", '"', "\\");
+                    else
+                        newValue = values.join(',');
 
                     var lastPoint = null;
                     if (oldValue != newValue) {
                         this.setInputElementValue(valueElement, newValue);
-
-                        if (LogiXML.rdInputTextDelimiter) {
-                            delimitedValue = LogiXML.rdInputTextDelimiter.delimit(values, ",", '"', "\\");
-                            eleDelimited = this.getOrCreateInputElement("rdCSV_" + selection.valueElementId);
-                            this.setInputElementValue(eleDelimited, delimitedValue);
-                        }
-
                         if (selection.changeFlagElementId && selection.changeFlagElementId.length > 0) {
                             changeFlagElement = this.getOrCreateInputElement(selection.changeFlagElementId);
                             changeFlagElement.set('value', 'True');
                         }
+
                        
                         var minPoint = values[0];
                         var maxPoint = values[values.length - 1];
@@ -1114,14 +1103,12 @@ YUI.add('chartCanvas', function (Y) {
                             values = [];
                             this.getSelectedValues(series, values);
 
-                            newValue = values.join(',');
-                            if (LogiXML.rdTextInputDelimiter)
-                                delimitedValue = LogiXML.rdInputTextDelimiter.delimit(values, ",", '"', "\\");
+                            if (LogiXML.rdInputTextDelimiter)
+                                newValue = LogiXML.rdInputTextDelimiter.delimit(values, ",", '"', "\\");
+                            else
+                                newValue = values.join(',');
 
                             this.setInputElementValue(valueElement, newValue);
-
-                            if (eleDelimited)
-                                this.setInputElementValue(eleDelimited, delimitedValue);
 
                             this.disableNestedEvents = false;
                         }
@@ -1620,7 +1607,7 @@ YUI.add('chartCanvas', function (Y) {
 
         syncSelectedValues: function (series, seriesIndex) {
             var selection = series.options ? series.options.selection : series.selection,
-                valueElement, eleDelimited, value, values, id,
+                valueElement, value, values, id,
                 i = 0, length, minX, maxX, minY, maxY, selectionBox, 
                 minPointValueElement, maxPointValueElement,
                 minPointValue, maxPointValue;
@@ -1636,21 +1623,14 @@ YUI.add('chartCanvas', function (Y) {
                 if (!valueElement) {
                     return;
                 }
-
+                
                 value = this.getInputElementValue(valueElement);
                 if (!value || value.length == 0) {
                     return;
                 }
 
-                if (LogiXML.rdInputTextDelimiter) {
-                    eleDelimited = this.getOrCreateInputElement("rdCSV_" + selection.valueElementId);
-                    delimitedValue = this.getInputElementValue(eleDelimited);
-                    //When open an existing chart,the rdCSV hidden element was not built.
-                    if (!delimitedValue) {
-                        delimitedValue = value;
-                    }
-                    values = LogiXML.rdInputTextDelimiter.getEntries(delimitedValue, ",", '"', "\\", false);
-                }
+                if (LogiXML.rdInputTextDelimiter)
+                    values = LogiXML.rdInputTextDelimiter.getEntries(value, ",", '"', "\\", false);
                 else
                     values = value.split(',');
 
@@ -2046,13 +2026,6 @@ YUI.add('chartCanvas', function (Y) {
                 columnSelect.setData('drillToAction', columnSelect.on('change', function () { this.doDrillTo(columnSelect.get('value')) }, this));
                 this.highlightJoinedColumns();
             }
-            //REPDEV-24519 Develop a new breadcrumb menu for SSRM Dashboard Drill To
-            var isSsrmDashboard = this.configNode.getAttribute('is-ssrm-dashboard');
-            var chartDrillToStatus = this.configNode.getAttribute('chart-drillTo-status');
-            //The new breadecrumb menu only show in SSRM dashboard.
-            if (isSsrmDashboard == 'True' && chartDrillToStatus == '2') {
-                this.updateDrillInfoBreadcrumb();
-            }
         },             
 
         addDateGroupingIntoDrilledColumn: function (dataColumnName, dateGrouping, columnsInUse) {
@@ -2128,10 +2101,7 @@ YUI.add('chartCanvas', function (Y) {
             var inp = this.getOrCreateInputElement(inpName);
             this.drillTo.drilledToStates.pop();
             inp.set('value', JSON.stringify(this.drillTo.drilledToStates));
-            var requestUrl = 'rdAjaxCommand=RefreshElement&rdAction=ChartDrillTo&rdRefreshElementID=' + this.id + '&rdReport=' + this.reportName + '&rdRequestForwarding=Form';
-            if (this.drillTo.sGlobalFilterPopupId) {
-                requestUrl += '&rdPopupId=' + this.drillTo.sGlobalFilterPopupId
-            }
+            var requestUrl = 'rdAjaxCommand=RefreshElement&rdRefreshElementID=' + this.id + '&rdReport=' + this.reportName + '&rdRequestForwarding=Form';
             rdAjaxRequest(requestUrl);
         },
 
@@ -2195,28 +2165,9 @@ YUI.add('chartCanvas', function (Y) {
             var inpName = this.id + '_' + "drillTo";
             var inp = this.getOrCreateInputElement(inpName);
             inp.set('value', JSON.stringify(this.drillTo.drilledToStates));
-            //REPDEV-24519 Develop a new breadcrumb menu for SSRM Dashboard Drill To
-            //Add new parameter rdAction=ChartDrillTo when do drill to or drill back action.
-            var requestUrl = 'rdAjaxCommand=RefreshElement&rdAction=ChartDrillTo&rdRefreshElementID=' + this.id + '&rdReport=' + this.reportName + '&rdRequestForwarding=Form';
-            if (this.drillTo.sGlobalFilterPopupId) {
-                requestUrl += '&rdPopupId=' + this.drillTo.sGlobalFilterPopupId
-            }
+            var requestUrl = 'rdAjaxCommand=RefreshElement&rdRefreshElementID=' + this.id + '&rdReport=' + this.reportName + '&rdRequestForwarding=Form';
             rdAjaxRequest(requestUrl);
             ShowElement(this.id, this.drillTo.popupId, 'False', 'False');
-        },
-        //REPDEV-24519 Develop a new breadcrumb menu for SSRM Dashboard Drill To
-        updateDrillInfoBreadcrumb: function () {
-            if (this.drillInfoBreadcrumb) {
-                this.drillInfoBreadcrumb.destroy();
-            }
-            var chart = this;
-            Y.use('chartDrillToBreadcrumb', function (Y) {
-                chart.drillInfoBreadcrumb = new Y.LogiXML.ChartDrillToBreadcrumb({
-                    drillTo: chart.drillTo,             
-                    rdChartCanvasId: chart.id,
-                    reportName: chart.reportName
-                });
-            });
         },
 
         highlightJoinedColumns: function () {

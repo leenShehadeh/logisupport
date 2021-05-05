@@ -4,7 +4,6 @@
 		<Division ID="divAf_rdAfID">
 
 		  <InputHidden ID="rdAfMode_rdAfID" DefaultValue="" />
-      <InputHidden ID="rdAfDataSourceSyntax_rdAfID" DefaultValue="" />
       <Division ID="divAfControlContainer_rdAfID" ShowModes="None">
         <Label ID="rdAfDataColumnTypes_rdAfID" />
         <Label ID="rdAfDataColumnFormats_rdAfID" />
@@ -136,8 +135,6 @@
 											<StaticDataRow Operator="Not Contains" OperatorValue="Not Contains" />
                       <StaticDataRow Operator="Date Range" OperatorValue="Date Range" />
                       <StaticDataRow Operator="Range" OperatorValue="Range" />
-                      <StaticDataRow Operator="Like" OperatorValue="Like" />
-                      <StaticDataRow Operator="Not Like" OperatorValue="Not Like" />
                     </DataLayer>
 										<EventHandler DhtmlEvent="onchange">
 											<Action Type="Javascript" Javascript="rdAfUpdateUi(false, 'rdAfID')" ID="actionChangeFilterOptionColumn"/>
@@ -215,8 +212,6 @@
 													<StaticDataRow Text="90 Days Ago" Value="90 Days Ago" />
 													<StaticDataRow Text="180 Days Ago" Value="180 Days Ago" />
 													<StaticDataRow Text="365 Days Ago" Value="365 Days Ago" />
-                          <StaticDataRow Text="Current hour" Value="Current hour" />
-                          <StaticDataRow Text="Last hour" Value="Last hour" />
 													<StaticDataRow Text="Last Fiscal Year Start" Value="Last Fiscal Year Start" IsFiscal="True" />
 													<StaticDataRow Text="This Fiscal Year Start" Value="This Fiscal Year Start" IsFiscal="True" />
 													<StaticDataRow Text="Next Fiscal Year Start" Value="Next Fiscal Year Start" IsFiscal="True" />
@@ -300,8 +295,6 @@
 													<StaticDataRow Text="90 Days Ago" Value="90 Days Ago" />
 													<StaticDataRow Text="180 Days Ago" Value="180 Days Ago" />
 													<StaticDataRow Text="365 Days Ago" Value="365 Days Ago" />
-                          <StaticDataRow Text="Current hour" Value="Current hour" />
-                          <StaticDataRow Text="Last hour" Value="Last hour" />
 													<StaticDataRow Text="Last Fiscal Year Start" Value="Last Fiscal Year Start" IsFiscal="True" />
 													<StaticDataRow Text="This Fiscal Year Start" Value="This Fiscal Year Start" IsFiscal="True" />
 													<StaticDataRow Text="Next Fiscal Year Start" Value="Next Fiscal Year Start" IsFiscal="True" />
