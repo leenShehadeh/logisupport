@@ -13,6 +13,9 @@
 		<Label
 			Caption="My Chart To Export to PDF"
 		/>
+		<Label
+			Caption="@Function.ServerEngineVersion~"
+		/>
 		<ChartCanvas
 			ID="myChart"
 			>
@@ -200,4 +203,5 @@
 			</Action>
 		</Button>
 	</Body>
+	<ideTestParams/>
 </Report>
