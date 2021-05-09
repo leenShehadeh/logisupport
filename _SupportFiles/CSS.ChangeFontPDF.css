@@ -5,7 +5,7 @@ body{
 	outline: none !important;
 	font-size: 9px !important;
 }
-/*
+
 @font-face{
     font-family:kaigen-sans-j;
     src:url('Fonts.KaigenSansJ-Medium.ttf') format("truetype");
@@ -34,7 +34,7 @@ body{
     font-weight:400;
     font-display:swap
 	}
-		*/
+	
 * { 
 	font-family:kaigen-sans-j;
    }
