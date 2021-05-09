@@ -3,8 +3,9 @@ body{
 	font-family:kaigen-sans-j, sans-serif !important;
 	background: white;
 	outline: none !important;
-	font-size: 9px !important;	/* 9px */
+	font-size: 9px !important;
 }
+/*
 @font-face{
     font-family:kaigen-sans-j;
     src:url('Fonts.KaigenSansJ-Medium.ttf') format("truetype");
@@ -24,21 +25,19 @@ body{
     src:url('Fonts.KaigenSansJ-Light.ttf') format("truetype");
     font-style:italic;
     font-weight:400;
-    font-display:swap}
+    font-display:swap
+	}
 @font-face{
     font-family:kaigen-sans-j;
     src:url('Fonts.KaigenSansJ-Normal.ttf') format("truetype");
     font-style:normal;
     font-weight:400;
-    font-display:swap}
-	
-/*	
-*{
-
-    font-family:kaigen-sans-j;
-   
+    font-display:swap
 	}
+		*/
+* { 
+	font-family:kaigen-sans-j;
+   }
 	
-	*/
 	
 	
