@@ -1,0 +1,64 @@
+@font-face {
+  font-family: KaigenSansJ;
+  src: url(../Fonts/KaigenSansJ-Normal.ttf) format("truetype");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+
+* {
+	font-family: KaigenSansJ !important;
+}
+
+body{
+	width: 100%;
+	font-family:KaigenSansJ, sans-serif !important;
+	background: white;
+	outline: none !important;
+	font-size: 9px !important;
+}
+
+
+#myChart {
+	font-family: KaigenSansJ !important;
+}
+
+#myChart svg {
+	font-family: KaigenSansJ !important;
+}
+
+.fontFamilyJ {
+	font-family: KaigenSansJ;
+}
+
+g {
+	height: 30px !important;
+}
+
+.highcharts-legend {
+	background: pink;
+}
+
+.highcharts-legend-item {
+	background-color: Yellow;
+	fill: Yellow !important;
+}
+/*
+span {
+	height: 30px !important;
+	font-size: 8px;
+	display: inline-block;
+	line-height: 16px;
+}
+*/
+input[type="button"] {
+	line-height: 14px;
+	height: 36px;
+	font-size: 12px;
+	width: 200px;
+}
+
+tspan {
+	/*font-size: 200%;
+	font-family: serif;*/
+}

@@ -1,0 +1,233 @@
+/* CARDS */
+/* Debugger */
+.card .rdChartCanvas + br {
+	display: none;
+}
+/*.card #rdDebugChart,*/
+.card a[href*='rdDebug.htm'],
+.card a[onclick*='rdDebug.htm'] {
+	position: relative;
+	margin-top: -30px;
+	float: right;
+}
+.card a[href*='rdDebug.htm'] + br,
+.card a[onclick*='rdDebug.htm'] + br {
+	display: none;
+}
+
+/* Cards panel */
+.card {
+	display: inline-table;
+	font-family: Helvetica, 'Arial', 'Segoe UI', 'Avenir Next', 'Avenir', 'Helvetica Neue', 'sans-serif';
+	background: #FFFFFF;
+	border: 1px solid #E5E5E5;
+	border-radius: 2px;
+	
+	padding: 16px 24px 24px 24px;
+	width: fit-content;
+	
+	box-shadow: none;
+	vertical-align: top;
+	
+	font-weight: normal;
+	color: #333333;
+	
+	box-sizing: border-box;
+}
+
+/* Title inside cards */
+.card .title {
+	display: table-header-group;
+	font-size: 16px;
+	line-height: 16px;
+	font-weight: 600;
+	color: #333333;
+	padding: 0px;
+	height: 5%; /* To Fix line-height Firefox */
+}
+.card .title > span:first-child {
+	display: inline-block;
+    max-width: 90%;
+}
+.card .title-capitalized {
+	text-transform: capitalize;
+}
+.card .title .options {
+	font-size: 14px;
+	float: right;
+	color: #666666;
+	font-weight: normal;
+	
+	/*width: 10%;*/
+    vertical-align: top;
+    text-align: right;
+}
+
+/* Content of cards */
+.card > .content {
+	padding-top: 16px;
+	display: table-cell;
+	vertical-align: top;
+}
+/* For multiple content inside one card */
+.card > .content-inline {
+	display: table;
+	width: 100%;
+}
+.card .content-inline .content {
+	padding-top: 16px;
+	display: table-cell;
+	vertical-align: top;
+}
+
+.card .content-no-data {
+    text-align: center;
+	margin: 30% auto;
+}
+.card .content.align-center {
+	vertical-align: middle;
+	text-align: center;
+}
+.card .content.align-center .rdChartCanvas {
+	margin-left: auto;
+	margin-right: auto;
+	/*padding-bottom: 2px;*/
+}
+/* Content value */
+.card .content .content-value,
+.card .content .content-value sup {
+	font-size: 32px;
+	vertical-align: inherit;
+	margin-bottom: 2px;
+}
+/* Content Description */
+.card .content .content-description {
+	font-size: 14px;
+	text-align: left;
+}
+
+/* Footer */
+.card .footer {
+	display: table-footer-group;
+	font-size: 12px;
+	line-height: 12px;
+	color: #333333;
+	padding: 0px;
+	height: 5%; /* To Fix line-height Firefox */
+}
+.card .footer .options {
+	font-size: 14px;
+	float: right;
+	color: #666666;
+	font-weight: normal;
+}
+
+/* Default settings of links inside the cards */
+.card a,
+.card a:HOVER {
+	text-decoration: none;
+}
+.card .title a,
+.card .title a:HOVER,
+.card .content .content-value a,
+.card .content .content-value a:HOVER{
+	color: #333333;
+}
+
+/* For multiple combined cards */
+.card.first-card{
+	border-right: none;
+	border-radius: 2px 0px 0px 2px;
+	margin-right: -1px;
+	padding: 16px 0px 24px 24px;
+}
+.card.middle-card {
+	margin-left: 0px;
+	border-left: none;
+	border-right: none;
+	border-radius: 0px;
+	margin-right: -1px;
+	padding: 16px 0px 24px 24px;
+}
+.card.last-card {
+	margin-left: 0px;
+	border-left: none;
+	border-radius: 0px 2px 2px 0px;
+}
+
+/* To separate multiples contents or card, use this margins */
+.card.margin-left,
+.card .margin-left {
+	margin-left: 20px;
+}
+.card.margin-right,
+.card .margin-right {
+	margin-right: 20px;
+}
+.card.margin-bottom,
+.card .margin-bottom {
+	margin-bottom: 20px;
+}
+.card.margin-top,
+.card .margin-top {
+	margin-top: 20px;
+}
+
+/* Widths of cards */
+.card.width-full,
+.card .width-full {
+	width: 95%;
+}
+.card.width-max,
+.card .width-max {
+	min-width: 540px;
+	width: 540px;
+}
+.card.width-mid,
+.card .width-mid {
+	min-width: 360px;
+	width: 360px;
+}
+.card.width-two-thirds,
+.card .width-two-thirds {
+	min-width: 790px;
+	width: 790px;
+}
+.card.width-min,
+.card .width-min {
+	min-width: 180px;
+	width: 180px;
+}
+/* Widths in percentages */
+.card.width-4-columns {
+	width: calc(100% - 2px);
+}
+.card.width-3-columns {
+    width: calc(100% / 1.332 - 6px);
+}
+.card.width-2-columns {
+    width: calc(100% / 2 - 11px);
+}
+.card.width-1-column {
+    width: calc(100% / 4 - 16px);
+	
+}
+
+/* Heights of cards */
+.card.height-max,
+.card .height-max {
+	min-height: 300px;
+	height: 300px;
+}
+.card.height-mid,
+.card .height-mid {
+	min-height: 180px;
+	height: 180px;
+	max-height: 180px;
+}
+.card.height-min,
+.card .height-min {
+	min-height: 130px;
+	height: 130px;
+	max-height: 130px;
+}

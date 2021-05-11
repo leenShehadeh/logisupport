@@ -1,33 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Settings>
   <CollapsedDef>
-    <File Name="C:\Users\lshehadeh\Desktop\apache-tomcat-9.0.44\webapps\fontss\_Definitions\_Reports\Default.lgx">
-      <Element Key="1\1\0" />
-      <Element Key="1\1\0\0" />
-      <Element Key="1\1\1" />
-      <Element Key="1\1\1\0" />
-      <Element Key="1\1\3" />
-      <Element Key="1\1\4" />
-      <Element Key="1\1\5" />
-      <Element Key="1\1\6" />
-      <Element Key="1\3" />
-    </File>
-    <File Name="C:\Users\lshehadeh\Desktop\apache-tomcat-9.0.44\webapps\fontss\_Definitions\_Reports\newReport.lgx">
-      <Element Key="2\1\0" />
-      <Element Key="2\1\1" />
-      <Element Key="2\1\2" />
-      <Element Key="2\1\3" />
-      <Element Key="2\1\4" />
-      <Element Key="2\1\5" />
-    </File>
     <File Name="C:\Program Files\Apache Software Foundation\Tomcat 8.5\webapps\fontss\_Definitions\_Reports\pie.lgx">
-      <Element Key="2\1" />
-      <Element Key="2\1\0" />
-      <Element Key="2\1\1" />
-      <Element Key="2\1\2" />
-      <Element Key="2\1\3" />
-      <Element Key="2\1\4" />
       <Element Key="2\2" />
+      <Element Key="2\2\0" />
+      <Element Key="2\2\1" />
+      <Element Key="2\2\2" />
+      <Element Key="2\2\3" />
+      <Element Key="2\2\4" />
       <Element Key="2\3" />
     </File>
     <File Name="C:\Program Files\Apache Software Foundation\Tomcat 8.5\webapps\fontss\_Definitions\_Reports\Default.lgx">
@@ -49,6 +29,9 @@
       <Element Key="2\4\0" />
       <Element Key="2\4\1" />
       <Element Key="2\4\3" />
+    </File>
+    <File Name="C:\Program Files\Apache Software Foundation\Tomcat 8.5\webapps\fontss\_Definitions\_Reports\qaserver.lgx">
+      <Element Key="6\1" />
     </File>
   </CollapsedDef>
 </Settings>

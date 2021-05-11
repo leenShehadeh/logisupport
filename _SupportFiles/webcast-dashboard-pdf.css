@@ -1,0 +1,374 @@
+/* Page Layout */
+body {
+	background-color: transparent;
+	padding-bottom: 0; /*!important; */
+	top: -15px;
+	margin: 0px 0px 0px 35px;
+	width: 920px !important; /* PDF Width + 20px card margin right*/
+	position: relative !important;
+}
+
+/* Header */
+#report-header {
+    display: block;
+}
+#report-header #rdReportHeader {
+	/*height: 65px;*/
+    display: block!important;
+}
+#header-row {
+    display: block !important;
+	width: 920px;
+	line-height: 12px;
+	padding: 0px 20px 10px 20px;
+	background-color: #196baa; /* Old browsers */
+	font-weight: normal;
+	position: relative;
+	box-sizing: border-box;
+}
+.page-content .main-title {
+    display: block !important;
+    text-align: left;
+    margin-top: 20px;
+    margin-bottom: 0;
+	margin-left: 0px;
+	font-weight: normal;
+	line-height: 1;
+}
+#lblWebcastTitle {
+	max-width: 70%;
+}
+#divDateWrapper {
+	margin-top: 5px;
+}
+.icon-webcast-intelligence {
+    display: inline-block;
+    position: absolute;
+	right: -15px;
+    top: 18px;
+}
+.japanese .icon-webcast-intelligence {
+	top: 15px;
+}
+/* Event Id Label */
+div#lblEventIdContainer {
+    display: inline-block;
+	margin: 10px 0px 0px 5px;
+}
+/* Client Name Label */
+#divClientNameWrapper {
+    margin-top: 0px;
+}
+
+/* Content */
+.page-content {
+	/*display: block;*/
+	background-color: #FFFFFF !important;
+	padding: 0px !important;
+}
+.panelBody {
+	background-color: transparent !important;
+}
+
+/* ALL CARDS */
+.card {
+	float: left;
+	padding: 16px 24px 16px 24px;
+	/* Force to change margin-botto to margin-top because of Page-Break 
+	margin-top: 20px;
+	margin-bottom: 0px !important;*/
+}
+.japanese .card .title {
+	display: block;
+	height: 16px;
+}
+.card.width-2-columns .panel-chart {
+	position: relative !important;
+}
+/* Default label */
+.card .content .content-description {
+	font-size: 12px;
+}
+.card.height-min,
+.card .height-min {
+	min-height: 135px !important;
+	height: 135px !important;
+	max-height: 135px !important;
+}
+.card.height-mid,
+.card .height-mid {
+	min-height: 250px !important;
+	height: 250px !important;
+	max-height: 250px !important;
+}
+
+/* WEBCAST INTELLIGENCE REPORT */
+/* To Fix cards width charts */
+.card.width-2-columns .panel-chart,
+.card.width-2-columns .panel-chart .rdChartCanvas {
+	width: 395px !important;
+}
+/* Widths of cards */
+#card-summary .content-inline,
+#card-live-summary .content-inline,
+#card-od-summary .content-inline {
+	display: block;
+    width: 100%;
+    margin-top: 20px;
+}
+#card-summary .content,
+#card-live-summary .content,
+#card-od-summary .content {
+	display: inline-block;
+}
+#card-EventSummary,
+#card-audienceFeedback,
+#card-LiveGraph,
+#card-ODGraph,
+#card-ARGraph,
+#card-RegistrationGraph,
+#card-PartnerRefGraph,
+/* Live Performance Widget */
+#card-live-summary,
+#card-live-attendanceTimeline,
+#card-live-registrationSource,
+/* On-Demand Widget */
+#card-od-summary,
+#card-od-attendanceTimeline,
+#card-od-registrationSource,
+#card-od-audienceRetention {
+	min-width: 400px !important;
+	width: 448px !important;
+}
+#card-EventSummary,
+#card-LiveGraph,
+#card-ARGraph {
+	margin-right: 20px !important;
+}
+/* To Fix Summary Widget */
+#card-summary .content-inline {
+	margin-top: 0px;
+}
+#card-summary .content-inline .content {
+    padding-top: 10px;
+}
+/* To Fix Event Summary Widget */
+#event-summary-table {
+	border-collapse: collapse;
+    width: 395px !important;
+}
+.japanese #event-summary-table span {
+	font-size: 12px;
+}
+/* Fix Registration Timeline */
+#card-RegConversionRate {
+    width: 130px !important;
+}
+/* To Fix Event Summary Widget when Audience Feedback */
+#card-EventSummary.audienceFeedbackDisplayed,
+#card-audienceFeedback {
+	min-height: 188px !important;
+	height: 188px !important;
+	max-height: 188px !important;
+	padding-bottom: 8px;
+}
+/* Audience Feedback Tooltip */
+#card-audienceFeedback .content {
+	padding-top: 6px;
+}
+
+/* Live Performance and On-Demand Performance */
+.block-title {
+	padding-top: 0px !important;
+}
+.block-title hr {
+	margin-top: -8px; /* To Fix Line position */
+}
+#dashboard-webcast-live .block-title hr {
+	margin-left: 144px !important;
+}
+#dashboard-webcast-od .block-title hr {
+	margin-left: 202px !important;
+}
+#card-live-registrationSource .panel-chart,
+#card-od-registrationSource .panel-chart {
+	margin-top: -6px !important;
+}
+/* Live Performance */
+#dashboard-webcast-live {
+	margin-top: 210px; /* Page break */
+}
+#dashboard-webcast-live.audienceFeedbackDisplayed {
+	margin-top: 20px; /* Page break */
+}
+#card-live-summary .content-inline,
+#card-od-summary .content-inline {
+    width: 400px !important;
+}
+#card-live-summary.card .width-min {
+    min-width: 130px !important;
+    width: 130px !important;
+}
+#card-content-live-summary-row-2.content-inline .content,
+#card-content-od-summary-row-2.content-inline .content {
+	padding-top: 0px !important;
+}
+
+/* On-Demand Performance */
+#dashboard-webcast-od {
+	/* Page break */
+	margin-top: 210px;
+}
+#card-od-summary.card .width-min {
+	min-width: 200px !important;
+    width: 200px !important;
+}
+
+/* On-Demand Event Type */
+#dashboard-webcast-od.onDemandEventType {
+	margin-top: 24px;
+}
+#card-od-registrationSource.onDemandEventType,
+#card-od-audienceRetention.onDemandEventType {
+	margin-top: 100px;
+}
+
+/* Page break */
+.margin-top.webcast-page-1-break {
+	margin-top: 95px !important;
+}
+
+/* VIDEO INTELLIGENCE REPORT */
+/* To Fix first row */
+#card-TotalViews {
+	min-width: 300px !important;
+	width: 300px !important;
+}
+#card-UniqueViews {
+	min-width: 300px !important;
+	width: 300px !important;
+}
+#card-AvgViewing {
+	min-width: 230px !important;
+	width: 230px !important;
+}
+
+/* Widths of cards */
+#card-PartnerRef,
+#card-ViewsByPlayer,
+#card-On24Summary,
+#card-YoutubeSummary {
+	min-width: 400px !important;
+	width: 448px !important;
+}
+#dashboard-video #card-PartnerRef,
+#dashboard-video #card-ViewsByPlayer {
+	min-height: 243px !important;
+	height: 243px !important;
+	max-height: 243px !important;
+}
+#dashboard-video #card-PartnerRef {
+	padding: 16px 24px 8px 24px !important;
+}
+#dashboard-video #card-ViewsByPlayer .content {
+	padding-top: 6px;
+}
+#card-On24Summary,
+#card-YoutubeSummary {
+	min-height: 185px !important;
+    height: 185px !important;
+    max-height: 185px !important;
+}
+#card-PartnerRef,
+#card-On24Summary {
+	margin-right: 20px !important;
+}
+/* To Fix Views By Player Widget */
+#card-ViewsByPlayer .panel-chart {
+	width: 390px !important;
+}
+
+/* Page break */
+#card-On24Summary.webcast-page-1-break,
+#card-YoutubeSummary.webcast-page-1-break {
+	margin-top: 0px !important;
+}
+
+/* DOCUMENT INTELLIGENCE REPORT */
+#card-SearchKeywords {
+	min-width: 448px !important;
+	width: 448px !important;
+	max-width: 448px !important;
+}
+
+/* CONTENT EXPERIENCE REPORT */
+/* To Fix first row */
+#card-TotalPageVisits {
+    width: 130px !important;
+}
+#card-activityTimeline {
+    width: 448px !important;
+}
+#card-leads {
+	min-width: 448px !important;
+	width: 448px !important;
+	max-width: 448px !important;
+}
+/* upgrade 12.7*/
+.event-table-header{
+	display: none !important;
+}
+.block-title hr{
+	display: block !important;
+	height: 5px  !important;
+}
+
+.hiddeElement{
+	display : none;
+}
+.split-line{
+	border-bottom: 1px solid #C5C5C5;
+	height: 1px;
+	margin-top: -15px;
+	position: absolute;
+    width: 100%;
+	display: block;
+}
+#splitLineLive{
+	margin-left: 150px;
+	width: calc(100% - 155px);
+}
+#splitLineOnDemand{
+	margin-left: 210px;
+	width: calc(100% - 215px);
+}
+#card-ContentViews{
+	min-width: 300px;
+    width: 300px;
+}
+
+/* WEBPAGE INTELLIGENCE REPORT */
+#card-summary.width-2-columns {
+	width: 450px !important;
+}
+#card-summary.width-2-columns #card-TotalViews {
+	min-width: 200px !important;
+	width: 200px !important;
+}
+#card-summary.width-2-columns #card-UniqueViews {
+	min-width: 200px !important;
+	width: 200px !important;
+}
+#card-viewing-timeline {
+	width: 448px !important;
+}
+
+/* Fix charts Legends */
+#chrtRegistrationTimeline .highcharts-legend-item text {
+	font-size: 14px;
+	display: inline-block;
+	background-color: pink;
+}
+#chrtRegistrationTimeline .highcharts-legend-item tspan {
+	font-size: 14px;
+}
