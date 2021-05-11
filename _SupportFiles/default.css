@@ -1,7 +1,7 @@
 @font-face {
   font-family: KaigenSansJ;
  /* src: url(../Fonts/KaigenSansJ-Normal.ttf) format("truetype");*/
-  src: url(Fonts/KaigenSansJ-Normal.ttf) format("truetype");
+   src:url('Fonts.KaigenSansJ-Normal.ttf') format("truetype");
   font-style: normal;
   font-weight: 500;
   font-display: swap;
