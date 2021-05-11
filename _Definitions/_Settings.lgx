@@ -30,7 +30,24 @@
 			UserCulture="ja"
 		/>
 	</Remark>
+	<Remark>
+		<Globalization
+			JavaFontFolder="/var/lib/tomcat7/webapps/logisupport/_SupportFiles/Fonts"
+			>
+			<Note
+				Note="leen"
+			/>
+		</Globalization>
+	</Remark>
 	<Globalization
-		JavaFontFolder="/var/lib/tomcat7/webapps/logisupport/_SupportFiles/Fonts"
-	/>
+		Culture="ja"
+		JavaFontFolder="@Function.AppPhysicalPath~\Fonts"
+		RebuildJavaFontFolderPropertiesFile="True"
+		UserCulture="ja"
+		>
+		<Note
+			Note="luis"
+		/>
+	</Globalization>
+	<ideTestParams/>
 </Setting>
