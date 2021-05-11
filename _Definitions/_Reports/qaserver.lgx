@@ -27,6 +27,10 @@
 	</Remark>
 	<Body>
 		<Label
+			Caption="@Function.ServerEngineVersion~"
+			HtmlTag="H2"
+		/>
+		<Label
 			Caption="My Chart To Export to PDF"
 			Class="fontFamilyJ"
 		/>
@@ -529,4 +533,5 @@
 			/>
 		</Remark>
 	</Body>
+	<ideTestParams/>
 </Report>
