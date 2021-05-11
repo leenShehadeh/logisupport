@@ -10,9 +10,9 @@
 	<SetAttribute XPath="//Series[@LegendLabel='Live']" LegendLabel="住むABCDE." />
 	<SetAttribute XPath="//Series[@LegendLabel='On Demand']" LegendLabel="オンデマンドABCDE." />
 	
-	<SetAttribute XPath="//Button[@Caption='Export To PDF']" Caption="にエクスポート." />
+	<SetAttribute XPath="//Button[@Caption='Export To PDF']" Caption="にエクスポート" />
 	
-	<SetAttribute XPath="//StaticDataRow[@REGLABEL='Live']" REGLABEL="住む." />
+	<SetAttribute XPath="//StaticDataRow[@REGLABEL='Live']" REGLABEL="住む" />
 	<SetAttribute XPath="//StaticDataRow[@REGLABEL='On Demand']" REGLABEL="オンデマンド" />
 	<SetAttribute XPath="//StaticDataRow[@REGLABEL='None']" REGLABEL="無し" />
 	<SetAttribute XPath="//StaticDataRow[@REGLABEL='Both']" REGLABEL="両方" />
