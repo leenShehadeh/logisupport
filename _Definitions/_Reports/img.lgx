@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report
+	ID="img"
+	>
+	<Body>
+		<Division
+			HtmlDiv="True"
+			ID="div_image"
+			>
+			<Image
+				Caption="permissionerror403.png"
+				ID="img_1"
+			/>
+		</Division>
+	</Body>
+</Report>

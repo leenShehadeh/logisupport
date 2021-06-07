@@ -31,10 +31,12 @@
       <Element Key="2\4\3" />
     </File>
     <File Name="C:\Program Files\Apache Software Foundation\Tomcat 8.5\webapps\fontss\_Definitions\_Reports\qaserver.lgx">
-      <Element Key="6\1" />
       <Element Key="6\2" />
-      <Element Key="6\3\1" />
+      <Element Key="6\3" />
       <Element Key="6\4" />
+      <Element Key="6\4\1" />
+      <Element Key="6\5" />
+      <Element Key="6\6" />
     </File>
   </CollapsedDef>
 </Settings>
