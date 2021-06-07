@@ -11,6 +11,76 @@
 				Caption="permissionerror403.png"
 				ID="img_1"
 			/>
+			<ChartCanvas
+				ID="myChart"
+				PlotBackgroundImage="permissionerror403.png"
+				>
+				<Series
+					AreaLineColor="#2781C6"
+					ChartXDataColumn="REGDATE"
+					ChartXDataColumnType="DateTime"
+					ChartYDataColumn="REGCOUNT"
+					Color="#BACBE9"
+					LegendLabel="Live"
+					Type="Area"
+					>
+					<DataLayer
+						Type="Static"
+						>
+						<StaticDataRow
+							REGCOUNT="2"
+							REGDATE="2020-09-16T23:00:21-07:00"
+						/>
+						<StaticDataRow
+							REGCOUNT="1"
+							REGDATE="2020-09-19T23:06:56-07:00"
+						/>
+						<StaticDataRow
+							REGCOUNT="2"
+							REGDATE="2020-09-20T23:15:05-07:00"
+						/>
+						<StaticDataRow
+							REGCOUNT="1"
+							REGDATE="2020-09-24T23:18:07-07:00"
+						/>
+					</DataLayer>
+				</Series>
+			</ChartCanvas>
+			<ChartCanvas
+				ID="myChart"
+				PlotBackgroundImage="./logisupport/_SupportFiles/permissionerror403.png"
+				>
+				<Series
+					AreaLineColor="Brown"
+					ChartXDataColumn="REGDATE"
+					ChartXDataColumnType="DateTime"
+					ChartYDataColumn="REGCOUNT"
+					Color="Violet"
+					LegendLabel="path"
+					Type="Area"
+					>
+					<DataLayer
+						Type="Static"
+						>
+						<StaticDataRow
+							REGCOUNT="2"
+							REGDATE="2020-09-16T23:00:21-07:00"
+						/>
+						<StaticDataRow
+							REGCOUNT="1"
+							REGDATE="2020-09-19T23:06:56-07:00"
+						/>
+						<StaticDataRow
+							REGCOUNT="2"
+							REGDATE="2020-09-20T23:15:05-07:00"
+						/>
+						<StaticDataRow
+							REGCOUNT="1"
+							REGDATE="2020-09-24T23:18:07-07:00"
+						/>
+					</DataLayer>
+				</Series>
+			</ChartCanvas>
 		</Division>
 	</Body>
 </Report>
