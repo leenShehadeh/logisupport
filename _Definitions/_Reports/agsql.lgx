@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Report
-	ID="ag"
+	ID="agsql"
 	>
 	<Body>
 		<AnalysisGrid
 			AjaxPaging="True"
 			DraggableColumns="True"
-			ID="anlysGrd2"
+			ID="ansql"
 			ShowPageNumber="True"
 			SortArrows="True"
 			>
