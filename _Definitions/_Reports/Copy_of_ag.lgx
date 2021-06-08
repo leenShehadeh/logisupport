@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report
+	ID="ag"
+	>
+	<Body>
+		<AnalysisGrid
+			AjaxPaging="True"
+			DraggableColumns="True"
+			ID="anlysGrd"
+			ShowPageNumber="True"
+			SortArrows="True"
+			>
+			<DataLayer
+				ConnectionID="support"
+				ID="SQLDataLayer1"
+				Source="SELECT TOP (1000) [date]
+      ,[value]
+      ,[category]
+      ,[dateonly]
+  FROM [support].[dbo].[datestable]"
+				Type="SQL"
+			/>
+			<AnalysisGridColumn
+				ColumnVisible="True"
+				DataColumn="category"
+				DataType="Text"
+				Header="category"
+				ID="colcategory"
+			/>
+			<AnalysisGridColumn
+				ColumnVisible="True"
+				DataColumn="dateonly"
+				DataType="Date"
+				Format="Short Date"
+				Header="OrderDate"
+				ID="colOrderDate"
+				PopupValuesForFilter="Calendar"
+				>
+				<ExcelColumnFormat
+					DataType="Date"
+					ExcelFormat="Short Date"
+				/>
+			</AnalysisGridColumn>
+		</AnalysisGrid>
+	</Body>
+</Report>

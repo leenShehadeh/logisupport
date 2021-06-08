@@ -21,7 +21,16 @@
 		>
 		<WaitPage/>
 	</General>
-	<Connections/>
+	<Connections>
+		<Connection
+			ID="support"
+			SqlServer="DBSR-LSHEHADEH"
+			SqlServerDatabase="support"
+			SqlServerPassword="u"
+			SqlServerUser="u"
+			Type="SqlServer"
+		/>
+	</Connections>
 	<TeamDevelopment/>
 	<Remark>
 		<Globalization
