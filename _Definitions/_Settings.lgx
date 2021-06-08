@@ -50,5 +50,8 @@
 		RebuildJavaFontFolderPropertiesFile="True"
 		UserCulture="ja"
 	/>
+	<Constants
+		rdExportDataPreference="Rapid"
+	/>
 	<ideTestParams/>
 </Setting>

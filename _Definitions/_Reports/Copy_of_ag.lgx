@@ -6,7 +6,7 @@
 		<AnalysisGrid
 			AjaxPaging="True"
 			DraggableColumns="True"
-			ID="anlysGrd"
+			ID="anlysGrd2"
 			ShowPageNumber="True"
 			SortArrows="True"
 			>
